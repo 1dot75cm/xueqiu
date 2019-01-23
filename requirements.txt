@@ -1,0 +1,5 @@
+arrow>=0.13.0
+fake-useragent>=0.1.11
+lxml>=4.3.0
+requests>=2.21.0
+selenium>=3.141.0
