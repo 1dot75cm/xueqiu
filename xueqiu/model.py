@@ -234,6 +234,7 @@ class User:
         self.followers = {} # 粉丝
         self.posts = {}     # 帖子
         self.articles = {}  # 专栏
+        self.favorites = {} # 收藏
         self.stocks = {}    # 股票
         self.hot_stocks = {}
 
@@ -296,6 +297,21 @@ class User:
         dt = resp.ok and resp.json()
         self.articles = {
             'count': dt['total'],
+            'page': dt['page'],
+            'maxpage': dt['maxPage'],
+            'list': [Post(i) for i in dt['list']]
+        }
+
+    def get_favorites(self, page: int = 1, count: int = 20):
+        """get your favorite posts.
+
+        :param page: (optional) page number, default is `1`.
+        :param count: (optional) the number of results, default is `20`.
+        """
+        resp = sess.get(api.user_favorite % (self.id, page, count))
+        dt = resp.ok and resp.json()
+        self.favorites = {
+            'count': dt['count'],
             'page': dt['page'],
             'maxpage': dt['maxPage'],
             'list': [Post(i) for i in dt['list']]
