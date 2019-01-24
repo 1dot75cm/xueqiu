@@ -106,6 +106,22 @@ class Comment:
     def __str__(self):
         return "%s: %s" % (self.user.name, self.text)
 
+    def _set_like(self, apiurl: str = api.comment_like):
+        """like or unlike the comment."""
+        data = {'id': self.id}
+        header = {'X-Requested-With': 'XMLHttpRequest'}  # ajax request
+        resp = sess.post(apiurl, headers=header, data=data)
+        dt = resp.ok and resp.json()
+        return dt.get('success')
+
+    def like(self):
+        """like the comment. (require login)"""
+        return self._set_like(api.comment_like)
+
+    def unlike(self):
+        """unlike the comment. (require login)"""
+        return self._set_like(api.comment_unlike)
+
 
 class Post:
     """A user-created :class:`Post <instance_id>` object.
@@ -153,6 +169,22 @@ class Post:
             'maxpage': dt['maxPage'],
             'list': [Comment(i) for i in dt['comments']]
         }
+
+    def _set_like(self, apiurl: str = api.post_like):
+        """like or unlike the article."""
+        data = {'id': self.id}
+        header = {'X-Requested-With': 'XMLHttpRequest'}  # ajax request
+        resp = sess.post(apiurl, headers=header, data=data)
+        dt = resp.ok and resp.json()
+        return dt.get('success')
+
+    def like(self):
+        """like the article. (require login)"""
+        return self._set_like(api.post_like)
+
+    def unlike(self):
+        """unlike the article. (require login)"""
+        return self._set_like(api.post_unlike)
 
 
 class User:
@@ -233,7 +265,7 @@ class User:
         :param page: (optional) page number, default is `1`.
         :param count: (optional) the number of results, default is `10`.
         """
-        resp = sess.get(api.user_timeline % (self.id, page, count))
+        resp = sess.get(api.user_post % (self.id, page, count))
         dt = resp.ok and resp.json()
         self.posts = {
             'count': dt['total'],
