@@ -18,6 +18,7 @@ from . import api
 from lxml import etree
 from urllib.parse import urlencode
 import arrow
+import browsercookie
 import json
 import os
 
@@ -378,11 +379,7 @@ class User:
                     value: password, phone
         """
         if self.logined: return self.logined
-        # load cookie cache
-        elif os.path.exists(api.cookie_file):
-            self.logined = True
-            sess.cookies.load(ignore_discard=True, ignore_expires=True)
-            return self.logined
+        elif self.load_cookie(): return self.logined  # load cookie
 
         # user login
         data = {'phone':    {'remember_me':'true', 'areacode':86,  'telephone':uid, 'code':passwd},
@@ -396,6 +393,19 @@ class User:
         # save cookie
         if os.path.exists(os.path.dirname(api.cookie_file)):
             sess.cookies.save(ignore_discard=True, ignore_expires=True)
+        return self.logined
+
+    def load_cookie(self):
+        """load cookies from file or browser."""
+        cookies = [i for i in browsercookie.load() if i.domain.find("xueqiu")>0]
+        # load cookies from file
+        if os.path.exists(api.cookie_file):
+            sess.cookies.load(ignore_discard=True, ignore_expires=True)
+            self.logined = True
+        # load cookies from browser
+        elif cookies and 'xq_is_login' in [i.name for i in cookies]:
+            [sess.cookies.set_cookie(ck) for ck in cookies]
+            self.logined = True
         return self.logined
 
 
