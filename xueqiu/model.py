@@ -186,6 +186,18 @@ class Post:
         """unlike the article. (require login)"""
         return self._set_like(api.post_unlike)
 
+    def favorite(self):
+        """favorite the article. (require login)"""
+        resp = sess.get(api.post_favorite % self.id)
+        dt = resp.ok and resp.json()
+        return dt.get('favorited')
+
+    def unfavorite(self):
+        """unfavorite the article. (require login)"""
+        resp = sess.get(api.post_unfavorite % self.id)
+        dt = resp.ok and resp.json()
+        return dt.get('success')
+
 
 class User:
     # TODO: talk

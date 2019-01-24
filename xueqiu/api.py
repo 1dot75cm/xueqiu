@@ -61,6 +61,8 @@ news = prefix + "/v4/statuses/public_timeline_by_category.json?since_id=-1&max_i
 # 头条-1, 直播6, 沪深105, 港股102, 美股101, 基金104, 私募113, 房产111, 汽车114, 保险110
 post_like = prefix + "/statuses/like.json"  # post: id
 post_unlike = prefix + "/statuses/unlike.json"
+post_favorite = prefix + "/favorites/create.json?id=%s"  # 收藏
+post_unfavorite = prefix + "/favorites/destroy/%s.json"
 
 # search
 search_stock = prefix + "/stock/search.json?code=%s&size=%s&page=%s"
