@@ -41,6 +41,9 @@ def get_cookies():
                 domain=i.get('domain'), expires=i.get('expiry') or None,
                 rest={'HttpOnly':i.get('httpOnly')}, path='/'))
         browser.close()
+    # cookie directory
+    if not os.path.exists(os.path.dirname(api.cookie_file)):
+        os.mkdir(os.path.dirname(api.cookie_file))
     return cj
 
 def get_session():
@@ -49,11 +52,9 @@ def get_session():
     sess.headers['Origin'] = api.prefix
     sess.headers['Referer'] = api.prefix
     sess.headers['User-Agent'] = UserAgent().random
+    sess.headers['X-Requested-With'] = 'XMLHttpRequest'  # ajax request
     # load cookie from file, browser or selenium
     sess.cookies = get_cookies()
-    # cookie directory
-    if not os.path.exists(os.path.dirname(api.cookie_file)):
-        os.mkdir(os.path.dirname(api.cookie_file))
     return sess
 
 def clean_html(tree: str):

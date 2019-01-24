@@ -109,10 +109,8 @@ class Comment:
     def _set_like(self, apiurl: str = api.comment_like):
         """like or unlike the comment."""
         data = {'id': self.id}
-        header = {'X-Requested-With': 'XMLHttpRequest'}  # ajax request
-        resp = sess.post(apiurl, headers=header, data=data)
-        dt = resp.ok and resp.json()
-        return dt.get('success')
+        dt = sess.post(apiurl, data=data).json()
+        return dt.get('success') or False
 
     def like(self):
         """like the comment. (require login)"""
@@ -173,10 +171,8 @@ class Post:
     def _set_like(self, apiurl: str = api.post_like):
         """like or unlike the article."""
         data = {'id': self.id}
-        header = {'X-Requested-With': 'XMLHttpRequest'}  # ajax request
-        resp = sess.post(apiurl, headers=header, data=data)
-        dt = resp.ok and resp.json()
-        return dt.get('success')
+        dt = sess.post(apiurl, data=data).json()
+        return dt.get('success') or False
 
     def like(self):
         """like the article. (require login)"""
@@ -188,15 +184,13 @@ class Post:
 
     def favorite(self):
         """favorite the article. (require login)"""
-        resp = sess.get(api.post_favorite % self.id)
-        dt = resp.ok and resp.json()
+        dt = sess.get(api.post_favorite % self.id).json()
         return dt.get('favorited')
 
     def unfavorite(self):
         """unfavorite the article. (require login)"""
-        resp = sess.get(api.post_unfavorite % self.id)
-        dt = resp.ok and resp.json()
-        return dt.get('success')
+        dt = sess.get(api.post_unfavorite % self.id).json()
+        return dt.get('success') or False
 
 
 class User:
@@ -393,8 +387,7 @@ class User:
         # user login
         data = {'phone':    {'remember_me':'true', 'areacode':86,  'telephone':uid, 'code':passwd},
                 'password': {'remember_me':'true', 'username':uid, 'password':passwd}}
-        header = {'X-Requested-With': 'XMLHttpRequest'}  # ajax request
-        resp = sess.post(api.user_login, headers=header, data=data[login_type])
+        resp = sess.post(api.user_login, data=data[login_type])
         self._resp_login = resp  # for debug
         dt = resp.ok and resp.json()
         self.logined = dt.get('login_success') or False
