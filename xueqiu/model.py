@@ -441,6 +441,7 @@ class Selector:
             size = 10,
         )
         self.help(show='init_check')
+        self._resp = {}  # for debug
 
     def __repr__(self):
         return "<xueqiu.Selector %s>" % (self.url())
@@ -448,15 +449,18 @@ class Selector:
     def __str__(self):
         return "%s" % (self.url())
 
-    @staticmethod
-    def _get(*args, **kwargs):
+    def _get(self, *args, **kwargs):
         resp = sess.get(*args, **kwargs)
+        self._resp = resp
         dt = resp.ok and resp.json()
         return dt
 
     def run(self):
         """sends a stock screener request."""
-        return self._get(api.selector, params=self.queries)
+        dt = self._resp and self._resp.json() or \
+                self._get(api.selector, params=self.queries)
+        return {'count': dt['count'],
+                'list': [Stock(i) for i in dt['list']]}
 
     def url(self):
         """return a selector url string."""
@@ -606,14 +610,16 @@ class Stock:
 
         stock_api = api.stocks_quote_v4 if code[0] == "F" else api.stock_quote
         resp = sess.get(stock_api % code)
-        self._resp = resp
+        self._resp = resp  # for debug
         if resp.ok:
             dt = resp.json()[code] if code[0] == "F" else resp.json()['data']['quote']
 
+        # base (api.stock_quotec_v5, api.stock_quote)
         self.symbol = dt.get('symbol')
-        self.code = dt.get('code')
-        self.name = dt.get('name')
+        self.code = dt.get('code')  # api.stock_quote
+        self.name = dt.get('name')  # api.stock_quote
         self.current = dt.get('current')                                # 当前
+        self.current_year_percent = dt.get('current_year_percent')      # 年至今回报
         self.percent = dt.get('percent')                                # 涨跌幅
         self.chg = dt.get('chg')                                        # 涨跌额
         self.open = dt.get('open')                                      # 今开
@@ -621,32 +627,40 @@ class Stock:
         self.high = dt.get('high')                                      # 最高
         self.low = dt.get('low')                                        # 最低
         self.avg_price = dt.get('avg_price')                            # 均价
-        self.limit_up = dt.get('limit_up')                              # 涨停
-        self.limit_down = dt.get('limit_down')                          # 跌停
         self.volume = dt.get('volume')                                  # 成交量
         self.amount = dt.get('amount')                                  # 成交额
-        self.volume_ratio = dt.get('volume_ratio')                      # 量比
-        #self.pankou_ratio = resp['data']['others']['pankou_ratio']    # 委比
         self.turnover_rate = dt.get('turnover_rate')                    # 换手
         self.amplitude = dt.get('amplitude')                            # 振幅
+        self.market_capital = dt.get('market_capital')                  # 总市值
+        self.float_market_capital = dt.get('float_market_capital')      # 流通市值
+        # base (api.stock_quote)
+        self.total_shares = dt.get('total_shares')                      # 总股本
+        self.float_shares = dt.get('float_shares')                      # 流通股
+        self.currency = dt.get('currency')                              # 货币单位
+        self.exchange = dt.get('exchange')                              # 交易所
+        # extend (api.stock_quote)
+        self.limit_up = dt.get('limit_up')                              # 涨停
+        self.limit_down = dt.get('limit_down')                          # 跌停
+        self.high52w = dt.get('high52w')                                # 52周最高
+        self.low52w = dt.get('low52w')                                  # 52周最低
+        self.volume_ratio = dt.get('volume_ratio')                      # 量比
+        #self.pankou_ratio = resp['data']['others']['pankou_ratio']      # 委比
         self.pe_lyr = dt.get('pe_lyr')                                  # pe静
         self.pe_ttm = dt.get('pe_ttm')                                  # pe滚动
         self.pe_forecast = dt.get('pe_forecast')                        # pe动
         self.pb = dt.get('pb')                                          # pb
-        self.eps = dt.get('eps')                                        # eps
-        self.bps = dt.get('navps')                                      # navps
+        self.eps = dt.get('eps')                                        # 每股收益
+        self.bps = dt.get('navps')                                      # 每股净资产
+        self.dividend = dt.get('dividend')                              # 股息
         self.dividend_yield = dt.get('dividend_yield')                  # 股息率
-        self.total_shares = dt.get('total_shares')                      # 总股本
-        self.float_shares = dt.get('float_shares')                      # 流通股
-        self.market_capital = dt.get('market_capital')                  # 总市值
-        self.float_market_capital = dt.get('float_market_capital')      # 流通市值
-        self.high52w = dt.get('high52w')                                # 52周最高
-        self.low52w = dt.get('low52w')                                  # 52周最低
-        self.currency = dt.get('currency')                              # 货币单位
-        self.exchange = dt.get('exchange')                              # 交易所
-        #self.time = arrow.get(dt.get('time')/1000)
+        self.profit = dt.get('profit')                                  # 净利润
+        self.profit_forecast = dt.get('profit_forecast')                # 净利润(预测)
+        self.profit_four = dt.get('profit_four')                        # 净利润(滚动)
+        # others
+        self.time = arrow.get(dt.get('timestamp')/1000)
         self.posts = {}      # 股票帖子
         self.followers = {}  # 股票粉丝
+        self.prousers = {}   # 专业用户
         self.popstocks = []  # 粉丝关注股票
         self.industries = {} # 同行业股票
 
@@ -655,6 +669,27 @@ class Stock:
 
     def __str__(self):
         return "%s[%s]" % (self.name, self.symbol)
+
+    def refresh(self):
+        """get current stock data."""
+        resp = sess.get(api.stock_quotec_v5 % self.symbol)
+        dt = resp.ok and resp.json()['data'] and resp.json()['data'][0]
+        self.current = dt.get('current')                                # 当前
+        self.current_year_percent = dt.get('current_year_percent')      # 年至今回报
+        self.percent = dt.get('percent')                                # 涨跌幅
+        self.chg = dt.get('chg')                                        # 涨跌额
+        self.open = dt.get('open')                                      # 今开
+        self.last_close = dt.get('last_close')                          # 昨收
+        self.high = dt.get('high')                                      # 最高
+        self.low = dt.get('low')                                        # 最低
+        self.avg_price = dt.get('avg_price')                            # 均价
+        self.volume = dt.get('volume')                                  # 成交量
+        self.amount = dt.get('amount')                                  # 成交额
+        self.turnover_rate = dt.get('turnover_rate')                    # 换手
+        self.amplitude = dt.get('amplitude')                            # 振幅
+        self.market_capital = dt.get('market_capital')                  # 总市值
+        self.float_market_capital = dt.get('float_market_capital')      # 流通市值
+        self.time = arrow.now()
 
     def get_posts(self, page: int = 1, count: int = 20,
                   sort: str = "time", source: str = "all"):
@@ -684,6 +719,15 @@ class Stock:
             'maxpage': dt['maxPage'],
             'list': [User(i) for i in dt['followers']]
         }
+
+    def get_prousers(self, count: int = 5):
+        """get stock professional users.
+
+        :param count: (optional) the number of results, default is `5`.
+        """
+        resp = sess.get(api.pro_users % (self.symbol, count))
+        dt = resp.ok and resp.json()
+        self.prousers = [User(i) for i in dt]
 
     def get_popstocks(self, count: int = 8):
         """get pop stocks.

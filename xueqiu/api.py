@@ -28,13 +28,15 @@ stock_quotec_v4 = prefix + "/v4/stock/quotec.json?code=%s"
 stocks_quote_v5 = prefix2 + "/v5/stock/batch/quote.json?symbol=%s"  # 多股信息
 stocks_quote_v4 = prefix + "/v4/stock/quote.json?code=%s"
 # https://stock.xueqiu.com/v5/stock/chart/minute.json?symbol=.DJI&period=1d  # 分时行情
+# https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol=SH601318&begin=1548422192962&period=day&type=before&count=-142&indicator=kline,ma,macd,kdj,boll,rsi,wr,bias,cci,psy  # K线
+# period: day week month quarter year 120m 60m 30m 15m 5m 1m
 # https://stock.xueqiu.com/v5/stock/history/trade.json?symbol=TSLA&count=20  # 成交明细
-# https://stock.xueqiu.com/v5/stock/realtime/quotec.json?symbol=TSLA         # 实时行情
 #stock_follows = prefix + "/recommend/pofriends.json?type=1&code=%s&start=0&count=14"  # 股票粉丝
 stock_follows = prefix3 + "/friendships/stockfollowers.json?x=0.75&code=%s&pageNo=%s&size=%s"  # 股票粉丝
 stock_popstocks = prefix + "/stock/portfolio/popstocks.json?code=%s&start=0&count=%s"  # 粉丝关注股票
 stock_industry = prefix + "/stock/industry/stockList.json?code=%s&type=1&size=%s"  # 同行业股票
 hot_stocks = prefix2 + "/v5/stock/hot_stock/list.json?type=%s&size=%s"  # 热门股票
+pro_users = prefix + "/recommend/user/stock_hot_user.json?symbol=%s&start=0&count=%s"  # 专业用户
 # type 全球10 沪深12 港股13 美股11
 user_stocks = prefix2 + "/v5/stock/portfolio/stock/list.json?uid=%s&pid=-%s&category=1&size=%s" # 用户关注
 # pid 全球1, 沪深5, 港股7, 美股6
