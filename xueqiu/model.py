@@ -614,7 +614,7 @@ class Stock:
         if resp.ok:
             dt = resp.json()[code] if code[0] == "F" else resp.json()['data']['quote']
 
-        # base (api.stock_quotec_v5, api.stock_quote)
+        # base (stock_quotec_v5, stock_quote, stocks_quote_v5)
         self.symbol = dt.get('symbol')
         self.code = dt.get('code')  # api.stock_quote
         self.name = dt.get('name')  # api.stock_quote
@@ -633,12 +633,12 @@ class Stock:
         self.amplitude = dt.get('amplitude')                            # 振幅
         self.market_capital = dt.get('market_capital')                  # 总市值
         self.float_market_capital = dt.get('float_market_capital')      # 流通市值
-        # base (api.stock_quote)
+        # base (stock_quote, stocks_quote_v5)
         self.total_shares = dt.get('total_shares')                      # 总股本
         self.float_shares = dt.get('float_shares')                      # 流通股
         self.currency = dt.get('currency')                              # 货币单位
         self.exchange = dt.get('exchange')                              # 交易所
-        # extend (api.stock_quote)
+        # extend (stock_quote)
         self.limit_up = dt.get('limit_up')                              # 涨停
         self.limit_down = dt.get('limit_down')                          # 跌停
         self.high52w = dt.get('high52w')                                # 52周最高
@@ -670,10 +670,12 @@ class Stock:
     def __str__(self):
         return "%s[%s]" % (self.name, self.symbol)
 
-    def refresh(self):
+    def refresh(self, dt: dict = {}):
         """get current stock data."""
-        resp = sess.get(api.stock_quotec_v5 % self.symbol)
-        dt = resp.ok and resp.json()['data'] and resp.json()['data'][0]
+        if not dt:
+            # get data from network or dict
+            resp = sess.get(api.stock_quotec_v5 % self.symbol)
+            dt = resp.ok and resp.json()['data'] and resp.json()['data'][0]
         self.current = dt.get('current')                                # 当前
         self.current_year_percent = dt.get('current_year_percent')      # 年至今回报
         self.percent = dt.get('percent')                                # 涨跌幅

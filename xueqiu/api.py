@@ -23,9 +23,9 @@ cookie_file = platform.system() == "Linux" and \
 
 # stock
 stock_quote = prefix2 + "/v5/stock/quote.json?symbol=%s&extend=detail"  # 基本信息
-stock_quotec_v5 = prefix2 + "/v5/stock/realtime/quotec.json?symbol=%s"  # 实时行情
+stock_quotec_v5 = prefix2 + "/v5/stock/realtime/quotec.json?symbol=%s"  # 实时行情(多参)
 stock_quotec_v4 = prefix + "/v4/stock/quotec.json?code=%s"
-stocks_quote_v5 = prefix2 + "/v5/stock/batch/quote.json?symbol=%s"  # 多股信息
+stocks_quote_v5 = prefix2 + "/v5/stock/batch/quote.json?symbol=%s"  # 多股信息(多参)
 stocks_quote_v4 = prefix + "/v4/stock/quote.json?code=%s"
 # https://stock.xueqiu.com/v5/stock/chart/minute.json?symbol=.DJI&period=1d  # 分时行情
 # https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol=SH601318&begin=1548422192962&period=day&type=before&count=-142&indicator=kline,ma,macd,kdj,boll,rsi,wr,bias,cci,psy  # K线
