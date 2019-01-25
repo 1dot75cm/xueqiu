@@ -602,7 +602,7 @@ class Stock:
 
     def __init__(self, code: str):
         if isinstance(code, dict):
-            code = code.get("code") or code.get("symbol")
+            code = code.get("symbol") or code.get("code")
 
         stock_api = api.stocks_quote_v4 if code[0] == "F" else api.stock_quote
         resp = sess.get(stock_api % code)
@@ -645,7 +645,10 @@ class Stock:
         self.currency = dt.get('currency')                              # 货币单位
         self.exchange = dt.get('exchange')                              # 交易所
         #self.time = arrow.get(dt.get('time')/1000)
-        self.posts = {}  # 股票相关帖子
+        self.posts = {}      # 股票帖子
+        self.followers = {}  # 股票粉丝
+        self.popstocks = []  # 粉丝关注股票
+        self.industries = {} # 同行业股票
 
     def __repr__(self):
         return "<xueqiu.Stock %s[%s]>" % (self.name, self.symbol)
@@ -666,3 +669,39 @@ class Stock:
         """
         self.posts = search(symbol=self.symbol, query_type="post", page=page,
                             count=count, sort=sort, source=source)
+
+    def get_followers(self, page: int = 1, count: int = 15):
+        """get stock fans.
+
+        :param page: (optional) page number, default is `1`.
+        :param count: (optional) the number of results, default is `15`.
+        """
+        resp = sess.get(api.stock_follows % (self.symbol, page, count))
+        dt = resp.ok and resp.json()
+        self.followers = {
+            'count': dt['count'],
+            'page': dt['page'],
+            'maxpage': dt['maxPage'],
+            'list': [User(i) for i in dt['followers']]
+        }
+
+    def get_popstocks(self, count: int = 8):
+        """get pop stocks.
+
+        :param count: (optional) the number of results, default is `8`.
+        """
+        resp = sess.get(api.stock_popstocks % (self.symbol, count))
+        dt = resp.ok and resp.json()
+        self.popstocks = [Stock(i) for i in dt]
+
+    def get_industry_stocks(self, count: int = 8):
+        """get industry stocks.
+
+        :param count: (optional) the number of results, default is `8`.
+        """
+        resp = sess.get(api.stock_industry % (self.symbol, count))
+        dt = resp.ok and resp.json()
+        self.industries = {
+            'industryname': dt['industryname'],
+            'list': [Stock(i) for i in dt['industrystocks']]
+        }

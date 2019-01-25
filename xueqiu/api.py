@@ -14,9 +14,9 @@ import os
 import platform
 
 # prefix
-host = "xueqiu.com"
 prefix = "https://xueqiu.com"
 prefix2 = "https://stock.xueqiu.com"
+prefix3 = "https://api.xueqiu.com"
 cookie_file = platform.system() == "Linux" and \
     os.path.join(os.getenv('HOME'), ".xueqiu", "cookie") or \
     os.path.join(os.getenv('LOCALAPPDATA') or "", "xueqiu", "cookie")  # linux or windows
@@ -30,9 +30,10 @@ stocks_quote_v4 = prefix + "/v4/stock/quote.json?code=%s"
 # https://stock.xueqiu.com/v5/stock/chart/minute.json?symbol=.DJI&period=1d  # 分时行情
 # https://stock.xueqiu.com/v5/stock/history/trade.json?symbol=TSLA&count=20  # 成交明细
 # https://stock.xueqiu.com/v5/stock/realtime/quotec.json?symbol=TSLA         # 实时行情
-# https://xueqiu.com/recommend/pofriends.json?type=1&code=TSLA&start=0&count=14 # 关注该股票的球友
-# https://xueqiu.com/stock/portfolio/popstocks.json?code=TSLA&start=0&count=8   # 大家还关注
-# https://xueqiu.com/stock/industry/stockList.json?code=TSLA&type=1&size=8      # 同行业股票
+#stock_follows = prefix + "/recommend/pofriends.json?type=1&code=%s&start=0&count=14"  # 股票粉丝
+stock_follows = prefix3 + "/friendships/stockfollowers.json?x=0.75&code=%s&pageNo=%s&size=%s"  # 股票粉丝
+stock_popstocks = prefix + "/stock/portfolio/popstocks.json?code=%s&start=0&count=%s"  # 粉丝关注股票
+stock_industry = prefix + "/stock/industry/stockList.json?code=%s&type=1&size=%s"  # 同行业股票
 hot_stocks = prefix2 + "/v5/stock/hot_stock/list.json?type=%s&size=%s"  # 热门股票
 # type 全球10 沪深12 港股13 美股11
 user_stocks = prefix2 + "/v5/stock/portfolio/stock/list.json?uid=%s&pid=-%s&category=1&size=%s" # 用户关注

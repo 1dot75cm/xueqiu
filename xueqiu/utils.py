@@ -48,10 +48,9 @@ def get_cookies():
 
 def get_session():
     sess = requests.sessions.Session()
-    sess.headers['Host'] = api.host
     sess.headers['Origin'] = api.prefix
     sess.headers['Referer'] = api.prefix
-    sess.headers['User-Agent'] = UserAgent().random
+    sess.headers['User-Agent'] = UserAgent().random  # Xueqiu Android 11.8.2
     sess.headers['X-Requested-With'] = 'XMLHttpRequest'  # ajax request
     # load cookie from file, browser or selenium
     sess.cookies = get_cookies()
