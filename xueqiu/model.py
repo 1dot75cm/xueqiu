@@ -17,6 +17,7 @@ from .utils import sess
 from . import api
 from lxml import etree
 from urllib.parse import urlencode
+import pandas as pd
 import arrow
 import browsercookie
 import json
@@ -638,6 +639,7 @@ class Stock:
         self.float_shares = dt.get('float_shares')                      # 流通股
         self.currency = dt.get('currency')                              # 货币单位
         self.exchange = dt.get('exchange')                              # 交易所
+        self.issue_date = arrow.get(dt.get('issue_date')/1000)          # 上市日期
         # extend (stock_quote)
         self.limit_up = dt.get('limit_up')                              # 涨停
         self.limit_down = dt.get('limit_down')                          # 跌停
@@ -663,6 +665,7 @@ class Stock:
         self.prousers = {}   # 专业用户
         self.popstocks = []  # 粉丝关注股票
         self.industries = {} # 同行业股票
+        self.history = {}    # 历史行情
 
     def __repr__(self):
         return "<xueqiu.Stock %s[%s]>" % (self.name, self.symbol)
@@ -751,3 +754,33 @@ class Stock:
             'industryname': dt['industryname'],
             'list': [Stock(i) for i in dt['industrystocks']]
         }
+
+    def get_histories(self, begin: str = '-1m', end: str = arrow.now(), period: str = 'day'):
+        """get stock history data.
+
+        :param begin: the start date of the results.
+                value: -1w -2w -1m -3m -6m -1y -2y -3y -5y cyear issue or YYYY-MM-DD
+        :param end: (optional) the end date of the results, default is `now`.
+        :param period: (optional) set date period, default is `day`.
+                value: day week month quarter year 120m 60m 30m 15m 5m 1m
+        """
+        now = arrow.now()
+        bg = {'-1w': now.shift(weeks=-1).timestamp,
+              '-2w': now.shift(weeks=-2).timestamp,
+              '-1m': now.shift(months=-1).timestamp,
+              '-3m': now.shift(months=-3).timestamp,
+              '-6m': now.shift(months=-6).timestamp,
+              '-1y': now.shift(years=-1).timestamp,
+              '-2y': now.shift(years=-2).timestamp,
+              '-3y': now.shift(years=-3).timestamp,
+              '-5y': now.shift(years=-5).timestamp,
+              'issue': self.issue_date.timestamp,
+              'cyear': now.replace(years=-1, month=12, day=31).timestamp}
+        begin = len(begin)>5 and arrow.get(begin).timestamp or bg[begin]
+        end = arrow.get(end).timestamp
+        resp = sess.get(api.stock_history % (self.symbol, begin, end, period))
+        dt = resp.ok and resp.json()
+        df = pd.DataFrame(
+            [[arrow.get(i[0]/1000).to('UTF-8')]+i[1:] for i in dt['data']['item']],
+            columns=dt['data']['column'])
+        self.history = df.set_index('timestamp')

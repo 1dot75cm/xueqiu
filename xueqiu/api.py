@@ -28,8 +28,8 @@ stock_quotec_v4 = prefix + "/v4/stock/quotec.json?code=%s"
 stocks_quote_v5 = prefix2 + "/v5/stock/batch/quote.json?symbol=%s"  # 多股信息(多参)
 stocks_quote_v4 = prefix + "/v4/stock/quote.json?code=%s"
 # https://stock.xueqiu.com/v5/stock/chart/minute.json?symbol=.DJI&period=1d  # 分时行情
-# https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol=SH601318&begin=1548422192962&period=day&type=before&count=-142&indicator=kline,ma,macd,kdj,boll,rsi,wr,bias,cci,psy  # K线
-# period: day week month quarter year 120m 60m 30m 15m 5m 1m
+stock_history = prefix2 + "/v5/stock/chart/kline.json?symbol=%s&begin=%s000&end=%s000&period=%s&type=before&indicator=kline"  # 历史行情
+# period: day week month quarter year 120m 60m 30m 15m 5m 1m; indicator: kline,ma,macd,kdj,boll,rsi,wr,bias,cci,psy
 # https://stock.xueqiu.com/v5/stock/history/trade.json?symbol=TSLA&count=20  # 成交明细
 #stock_follows = prefix + "/recommend/pofriends.json?type=1&code=%s&start=0&count=14"  # 股票粉丝
 stock_follows = prefix3 + "/friendships/stockfollowers.json?x=0.75&code=%s&pageNo=%s&size=%s"  # 股票粉丝
