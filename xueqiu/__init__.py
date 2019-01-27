@@ -14,5 +14,6 @@ from .model import news
 from .model import search
 from .model import Selector
 from .model import Stock
+from .model import Fund
 from .model import Post
 from .model import User

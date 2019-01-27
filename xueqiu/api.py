@@ -17,6 +17,8 @@ import platform
 prefix = "https://xueqiu.com"
 prefix2 = "https://stock.xueqiu.com"
 prefix3 = "https://api.xueqiu.com"
+prefix4 = "https://danjuanapp.com"
+prefix5 = "http://fundf10.eastmoney.com"
 cookie_file = platform.system() == "Linux" and \
     os.path.join(os.getenv('HOME'), ".xueqiu", "cookie") or \
     os.path.join(os.getenv('LOCALAPPDATA') or "", "xueqiu", "cookie")  # linux or windows
@@ -40,6 +42,16 @@ pro_users = prefix + "/recommend/user/stock_hot_user.json?symbol=%s&start=0&coun
 # type 全球10 沪深12 港股13 美股11
 user_stocks = prefix2 + "/v5/stock/portfolio/stock/list.json?uid=%s&pid=-%s&category=1&size=%s" # 用户关注
 # pid 全球1, 沪深5, 港股7, 美股6
+
+# fund
+exrate = "http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/fx/ccpr-notice%s.json"
+_exrate = "http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/fx/ccpr.json"
+fund_nav = prefix5 + "/F10DataApi.aspx?type=lsjz&code=%s&page=1&per=1"  # 基金净值
+#/F10DataApi.aspx?type=lsjz&code=110022&sdate=2019-01-01&edate=2019-01-10&per=20
+fund_history = prefix4 + "/djapi/fund/nav/history/%s?page=%s&size=%s"  # 历史净值
+fund_stocks = prefix5 + "/FundArchivesDatas.aspx?type=jjcc&code=%s&topline=50&year=%s&month=%s"  # 基金持仓
+#all_fund = "http://fund.eastmoney.com/js/fundcode_search.js"  # 所有基金
+#all_comp "http://fund.eastmoney.com/js/jjjz_gs.js"  # 所有基金公司
 
 # selector
 selector = prefix + "/stock/screener/screen.json"
@@ -77,3 +89,6 @@ search_cube = prefix + "/cube/search.json?q=%s&count=%s&page=%s"
 
 # xpath
 x_post_content = "//div[@class='article__bd__detail']//text()"
+x_fund_stocks = r"\w{2,6}.html.*?(\w{2,6}).html.>(\w.+?)<.*?>(\d{1,2}.\d{2})%"
+x_fund_nav = "//td/text()"
+x_exrate = r"\d{1,3}.\d{2,5}"

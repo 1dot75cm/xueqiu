@@ -10,18 +10,21 @@ This module implements a humanize XueQiu API wrappers.
 :license: MIT, see LICENSE for more details.
 """
 
-__all__ = ['news', 'search', 'Selector', 'Stock', 'Post', 'User']
+__all__ = ['news', 'search', 'Selector', 'Stock', 'Fund', 'Post', 'User']
 
 from .utils import clean_html
+from .utils import check_symbol
 from .utils import sess
 from . import api
 from lxml import etree
 from urllib.parse import urlencode
 import pandas as pd
+import numpy as np
 import arrow
 import browsercookie
 import json
 import os
+import re
 
 
 def search(query: str = "",
@@ -87,6 +90,24 @@ def news(category: int = -1, count: int = 10, max_id: int = -1):
         'list': [Post(json.loads(i['data'])) for i in dt['list']],
         'next_max_id': _next_max_id
     }
+
+
+def create_or_refresh_stocks(stocks: list):
+    """Create or refresh stocks.
+
+    :param stocks: the list contains a stock symbol or Stock object.
+    :return: a list of :class:`Stock <instance_id>` objects.
+    :rtype: [Stock1, Stock2, ...]
+    """
+    dot_stock = isinstance(stocks[0], Stock) and \
+                ",".join([i.symbol for i in stocks]) or \
+                ",".join([check_symbol(i) for i in stocks])  # symbol or Stock
+    resp = sess.get(api.stocks_quote_v5 % dot_stock)
+    dt = resp.ok and resp.json()['data']
+    if isinstance(stocks[0], Stock):
+        [stocks[i].refresh(v) for i,v in enumerate(dt['items'])]
+        return stocks
+    return [Stock(i['quote']) for i in dt['items']]
 
 
 class Comment:
@@ -410,10 +431,6 @@ class User:
         return self.logined
 
 
-def stocks():
-    # TODO: 行情
-    pass
-
 class Selector:
     # 组装queries, 检查key, 解析url， 返回list
     # TODO: check key, return obj
@@ -621,7 +638,7 @@ class Stock:
         self.name = dt.get('name')  # api.stock_quote
         self.current = dt.get('current')                                # 当前
         self.current_year_percent = dt.get('current_year_percent')      # 年至今回报
-        self.percent = dt.get('percent')                                # 涨跌幅
+        self.percent = round(float(dt.get('percent'))/100,4)            # 涨跌幅
         self.chg = dt.get('chg')                                        # 涨跌额
         self.open = dt.get('open')                                      # 今开
         self.last_close = dt.get('last_close')                          # 昨收
@@ -784,3 +801,64 @@ class Stock:
             [[arrow.get(i[0]/1000).to('UTF-8')]+i[1:] for i in dt['data']['item']],
             columns=dt['data']['column'])
         self.history = df.set_index('timestamp')
+
+
+class Fund(Stock):
+    """Fund class"""
+
+    def __init__(self, code: str, stocks: list = []):
+        Stock.__init__(self, check_symbol(code))
+        self.fund_nav = self.get_fund_nav()  # 净值 涨跌幅
+        self.fund_nav_guess = 0  # 估值 涨跌幅
+        self.fund_nav_premium = 0  # 溢价率
+        self.fund_history = {}   # 历史净值
+        self.fund_stocks = stocks and create_or_refresh_stocks(stocks[0]) or []  # 成份股
+        self.fund_weight = stocks and stocks[1] or []  # 权重
+
+    def get_fund_stocks(self, year: str = "", mouth: str = "12"):
+        """get fund stocks."""
+        # TODO 选季报
+        resp = sess.get(api.fund_stocks % (self.code, year, mouth))
+        stock = [re.findall(api.x_fund_stocks, i)
+                    for i in re.split("截止至", resp.text)[1:]]
+        self.fund_stocks = create_or_refresh_stocks([i[0] for i in stock[0]])
+        self.fund_weight = [round(float(i[2])/100,4) for i in stock[0]]
+
+    def get_fund_nav(self):
+        """get fund nav."""
+        resp = sess.get(api.fund_nav % self.code)
+        nav = etree.HTML(resp.text).xpath(api.x_fund_nav)[:-2]
+        nav[1], nav[2] = float(nav[1]), float(nav[2])
+        return nav
+
+    def get_fund_histories(self, page: int = 1, size: int = 90):
+        """get history fund nav."""
+        resp = sess.get(api.fund_history % (self.code, page, size))
+        dt = resp.ok and resp.json()['data']
+        df = pd.DataFrame(
+                [list(i.values())[:-1] for i in dt['items']],
+                columns=['date', 'nav', 'percentage'])
+        df = df.set_index('date')
+        self.nav_history = {
+            'count': dt['total_items'],
+            'page': dt['current_page'],
+            'maxpage': dt['total_pages'],
+            'df': df
+        }
+
+    def calc_premium(self):
+        """calculate fund premium."""
+        # exchange rate
+        #usd, hkd = exusd(), exhkd()
+        #ex = {'USD': usd[0]/usd[1], 'HKD': hkd[0]/hkd[1]}
+        #exrate = np.array([ex[i.currency] for i in self.fund_stocks])
+        percent = np.array([i.percent for i in self.fund_stocks])
+        weight = np.array(self.fund_weight)
+        # 当前/(净值*1+sum(涨跌幅*权重*汇率))-1
+        fund_percent = sum(percent*weight)/sum(weight)
+        self.fund_nav_guess = round(self.fund_nav[1]*(1+fund_percent),4), round(fund_percent,6),
+        self.fund_nav_premium = round(self.current/self.fund_nav_guess[0]-1, 6)
+
+    def refresh_all(self):
+        """refresh all of the fund stock objects."""
+        create_or_refresh_stocks([self] + [i for i in self.fund_stocks])

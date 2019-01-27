@@ -18,6 +18,9 @@ from fake_useragent import UserAgent
 from selenium import webdriver
 import browsercookie
 import requests
+import functools
+import arrow
+import re
 import os
 
 
@@ -59,5 +62,37 @@ def get_session():
 def clean_html(tree: str):
     return html.fromstring(tree).text_content()
 
+def check_symbol(code: str):
+    code = str(code)
+    if len(code) > 5:
+        if code[:2] in ["30", "39", "00"]:
+            return "SZ" + code
+        elif code[:2] in ["60", "50", "51"]:
+            return "SH" + code
+    return code
 
+def exrate(code: str, date: str = ""):
+    res, ext = [], {}
+    ex = {'USD':'美元','EUR':'欧元','JPY':'日元','HKD':'港元','GBP':'英镑','AUD':'澳大利亚元',
+          'NZD':'新西兰元','SGD':'新加坡元','CHF':'瑞士法郎','CAD':'加拿大元','MYR':'马来西亚林吉特',
+          'RUB':'俄罗斯卢布','ZAR':'南非兰特','KRW':'韩元','AED':'阿联酋迪拉姆','SAR':'沙特里亚尔',
+          'HUF':'匈牙利福林','PLN':'波兰兹罗提','DKK':'丹麦克朗','SEK':'瑞典克朗','NOK':'挪威克朗',
+          'TRY':'土耳其里拉','MXN':'墨西哥比索','THB':'泰铢'}
+    if not date:
+        resp = sess.get(api._exrate).json()
+        date = arrow.get(resp['data']['lastDate'].split()[0])
+    else:
+        date = arrow.get(date)
+    date = date.weekday()>4 and date.shift(weeks=-1,weekday=4) or date
+    for dt in date,date.shift(days=-1):
+        resp = sess.get(api.exrate % dt.format("YYYY-MM-DD")).json()
+        price = re.findall(api.x_exrate, resp['data']['vo']['price'])
+        for k,v in zip(ex.keys(), price):
+            ext.update({k:float(v)})
+        res.append(ext[code])
+    return res
+
+
+exusd = functools.partial(exrate, code="USD")
+exhkd = functools.partial(exrate, code="HKD")
 sess = get_session()
