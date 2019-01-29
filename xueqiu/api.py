@@ -19,9 +19,10 @@ prefix2 = "https://stock.xueqiu.com"
 prefix3 = "https://api.xueqiu.com"
 prefix4 = "https://danjuanapp.com"
 prefix5 = "http://fundf10.eastmoney.com"
+homedir = os.getenv('TESTDIR') or os.getenv('HOME') or os.getenv('LOCALAPPDATA')
 cookie_file = platform.system() == "Linux" and \
-    os.path.join(os.getenv('HOME'), ".xueqiu", "cookie") or \
-    os.path.join(os.getenv('LOCALAPPDATA') or "", "xueqiu", "cookie")  # linux or windows
+    os.path.join(homedir, ".xueqiu", "cookie") or \
+    os.path.join(homedir or "", "xueqiu", "cookie")  # linux or windows
 
 # stock
 stock_quote = prefix2 + "/v5/stock/quote.json?symbol=%s&extend=detail"  # 基本信息
@@ -74,7 +75,7 @@ user_post = prefix + "/v4/statuses/user_timeline.json?user_id=%s&page=%s&count=%
 user_article = prefix + "/statuses/original/timeline.json?user_id=%s&page=%s&count=%s"  # 专栏
 user_favorite = prefix + "/favorites.json?userid=%s&page=%s&size=%s"  # 收藏文章
 news = prefix + "/v4/statuses/public_timeline_by_category.json?since_id=-1&max_id=%s&category=%s&count=%s"  # 首页新闻
-# 头条-1, 直播6, 沪深105, 港股102, 美股101, 基金104, 私募113, 房产111, 汽车114, 保险110
+# category 头条-1, 今日话题0, 直播6, 沪深105, 港股102, 美股101, 基金104, 私募113, 房产111, 汽车114, 保险110
 post_like = prefix + "/statuses/like.json"  # post: id
 post_unlike = prefix + "/statuses/unlike.json"
 post_favorite = prefix + "/favorites/create.json?id=%s"  # 收藏
@@ -89,6 +90,7 @@ search_cube = prefix + "/cube/search.json?q=%s&count=%s&page=%s"
 
 # xpath
 x_post_content = "//div[@class='article__bd__detail']//text()"
+x_post_json = "//script[contains(text(),'user_id')]/text()"
 x_fund_stocks = r"\w{2,6}.html.*?(\w{2,6}).html.>(\w.+?)<.*?>(\d{1,2}.\d{2})%"
 x_fund_nav = "//td/text()"
 x_exrate = r"\d{1,3}.\d{2,5}"

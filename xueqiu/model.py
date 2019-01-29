@@ -10,7 +10,7 @@ This module implements a humanize XueQiu API wrappers.
 :license: MIT, see LICENSE for more details.
 """
 
-__all__ = ['news', 'search', 'Selector', 'Stock', 'Fund', 'Post', 'User']
+__all__ = ['news', 'search', 'Selector', 'Stock', 'Fund', 'Post', 'Comment', 'User']
 
 from .utils import clean_html
 from .utils import check_symbol
@@ -18,6 +18,7 @@ from .utils import sess
 from . import api
 from lxml import etree
 from urllib.parse import urlencode
+from urllib.parse import urljoin
 import pandas as pd
 import numpy as np
 import arrow
@@ -74,7 +75,7 @@ def news(category: int = -1, count: int = 10, max_id: int = -1):
     """Get news.
 
     :param category: (optional) type of the news, default is `-1`.
-                value: 头条-1, 直播6, 沪深105, 港股102, 美股101,
+                value: 头条-1, 今日话题0, 直播6, 沪深105, 港股102, 美股101,
                     基金104, 私募113, 房产111, 汽车114, 保险110
     :param count: (optional) the number of results, default is `10`.
     :param max_id: (optional) the max id of news, default is `-1`.
@@ -116,9 +117,10 @@ class Comment:
     :param dt: the dictionary contains comment data.
     """
 
-    def __init__(self, dt: dict):
+    def __init__(self, dt: dict, post):
         self.id = dt['id']
         self.user = User(dt['user'])
+        self.post = isinstance(post, Post) and post
         self.created_at = arrow.get(dt['created_at']/1000)
         self.like_count = dt['like_count']
         self.text = clean_html(dt["text"])
@@ -151,14 +153,21 @@ class Post:
     """
 
     def __init__(self, dt: dict):
+        if isinstance(dt, str):
+            resp = sess.get(urljoin(api.prefix, dt))
+            tree = etree.HTML(resp.text).xpath(api.x_post_json)[0]
+            dt = json.loads(re.search("= ({.*});", tree).group(1))
+
         self.id = dt['id']
         self.user = User(dt.get('user') or dt.get('user_id'))
         self.created_at = arrow.get(dt['created_at']/1000)
-        self.target = api.prefix + dt['target']  # 文章url
-        self.view_count = dt.get('view_count')  # 访问量
-        self.talk_count = dt.get('talk_count')  # 评论数
-        self.like_count = dt.get('like_count')  # 点赞数
-        self.title = dt.get('title')
+        self.target = urljoin(api.prefix, dt['target'])  # 文章url
+        self.view_count = dt.get('view_count')   # 访问量
+        self.reply_count = dt.get('reply_count') # 评论数
+        self.retweet_count = dt.get('retweet_count')  # 转发数
+        self.fav_count = dt.get('fav_count')     # 收藏数
+        self.like_count = dt.get('like_count')   # 点赞数
+        self.title = dt.get('title') and clean_html(dt.get('title'))
         self.text = clean_html(dt.get('text') or dt.get('description'))
         self.full_text = ""
         self.comments = {}
@@ -188,7 +197,7 @@ class Post:
             'count': dt['count'],
             'page': dt['page'],
             'maxpage': dt['maxPage'],
-            'list': [Comment(i) for i in dt['comments']]
+            'list': [Comment(i, self) for i in dt['comments']]
         }
 
     def _set_like(self, apiurl: str = api.post_like):
@@ -341,7 +350,11 @@ class User:
                     value: 全球1, 沪深5, 港股7, 美股6
         :param count: (optional) the number of results, default is `1000`.
         """
+        # user_stocks: exchange, name, symbol
         resp = sess.get(api.user_stocks % (self.id, mkt, count))
+        dt = resp.ok and resp.json()['data']
+        resp = sess.get(api.stocks_quote_v5 % ",".join(
+            [i['symbol'] for i in dt['stocks']]))
         dt = resp.ok and resp.json()['data']
         mkt_tpe = {
             '1': 'all',
@@ -351,8 +364,8 @@ class User:
         }
         self.stocks = {
             'market': mkt_tpe[f"{mkt}"],
-            'count': len(dt['stocks']),
-            'list': [Stock(i) for i in dt['stocks']]
+            'count': len(dt['items']),
+            'list': [Stock(i['quote']) for i in dt['items']]
         }
 
     def get_hot_stocks(self, mkt: int = 10, time_range: str = "hour", count: int = 10):
@@ -475,7 +488,7 @@ class Selector:
 
     def run(self):
         """sends a stock screener request."""
-        dt = self._resp and self._resp.json() or \
+        dt = self._resp and self._resp.url == self.url() and self._resp.json() or \
                 self._get(api.selector, params=self.queries)
         return {'count': dt['count'],
                 'list': [Stock(i) for i in dt['list']]}
@@ -571,13 +584,14 @@ class Selector:
         """
         # check args
         for i in args:
-            if i.split('.')[0] in self._params:
-                self.queries.update({i: "ALL"})
+            if i.split('_')[0] in self._params:
+                self.queries.update({i.replace('_','.'): "ALL"})
         # check kwargs
-        keys = [i.split('.')[0] for i in kwargs.keys()]
+        keys = [i.split('_')[0] for i in kwargs.keys()]
         for k in keys:
             k not in self._params and kwargs.pop(k)
-        self.queries.update(kwargs)
+        for k,v in kwargs.items():
+            self.queries.update({k.replace('_','.'): v})
         return self
 
     def orderby(self, key: str = 'symbol'):
@@ -638,7 +652,8 @@ class Stock:
         self.name = dt.get('name')  # api.stock_quote
         self.current = dt.get('current')                                # 当前
         self.current_year_percent = dt.get('current_year_percent')      # 年至今回报
-        self.percent = round(float(dt.get('percent'))/100,4)            # 涨跌幅
+        self.percent = dt.get('percent') and \
+            round(float(dt.get('percent'))/100,4) or 0                  # 涨跌幅
         self.chg = dt.get('chg')                                        # 涨跌额
         self.open = dt.get('open')                                      # 今开
         self.last_close = dt.get('last_close')                          # 昨收
@@ -656,7 +671,8 @@ class Stock:
         self.float_shares = dt.get('float_shares')                      # 流通股
         self.currency = dt.get('currency')                              # 货币单位
         self.exchange = dt.get('exchange')                              # 交易所
-        self.issue_date = arrow.get(dt.get('issue_date')/1000)          # 上市日期
+        self.issue_date = dt.get('issue_date') and \
+            arrow.get(dt.get('issue_date')/1000) or 0                   # 上市日期
         # extend (stock_quote)
         self.limit_up = dt.get('limit_up')                              # 涨停
         self.limit_down = dt.get('limit_down')                          # 跌停
@@ -793,7 +809,7 @@ class Stock:
               '-5y': now.shift(years=-5).timestamp,
               'issue': self.issue_date.timestamp,
               'cyear': now.replace(years=-1, month=12, day=31).timestamp}
-        begin = len(begin)>5 and arrow.get(begin).timestamp or bg[begin]
+        begin = len(begin)>5 and arrow.get(begin,tzinfo="Asia/Shanghai").timestamp or bg[begin]
         end = arrow.get(end).timestamp
         resp = sess.get(api.stock_history % (self.symbol, begin, end, period))
         dt = resp.ok and resp.json()
@@ -814,6 +830,9 @@ class Fund(Stock):
         self.fund_history = {}   # 历史净值
         self.fund_stocks = stocks and create_or_refresh_stocks(stocks[0]) or []  # 成份股
         self.fund_weight = stocks and stocks[1] or []  # 权重
+
+    def __repr__(self):
+        return "<xueqiu.Fund %s[%s]>" % (self.name, self.symbol)
 
     def get_fund_stocks(self, year: str = "", mouth: str = "12"):
         """get fund stocks."""
@@ -839,7 +858,7 @@ class Fund(Stock):
                 [list(i.values())[:-1] for i in dt['items']],
                 columns=['date', 'nav', 'percentage'])
         df = df.set_index('date')
-        self.nav_history = {
+        self.fund_history = {
             'count': dt['total_items'],
             'page': dt['current_page'],
             'maxpage': dt['total_pages'],

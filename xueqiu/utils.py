@@ -46,7 +46,7 @@ def get_cookies():
         browser.close()
     # cookie directory
     if not os.path.exists(os.path.dirname(api.cookie_file)):
-        os.mkdir(os.path.dirname(api.cookie_file))
+        os.makedirs(os.path.dirname(api.cookie_file), exist_ok=True)
     return cj
 
 def get_session():
@@ -71,7 +71,7 @@ def check_symbol(code: str):
             return "SH" + code
     return code
 
-def exrate(code: str, date: str = ""):
+def exrate(date: str = "", code: str = "USD"):
     res, ext = [], {}
     ex = {'USD':'美元','EUR':'欧元','JPY':'日元','HKD':'港元','GBP':'英镑','AUD':'澳大利亚元',
           'NZD':'新西兰元','SGD':'新加坡元','CHF':'瑞士法郎','CAD':'加拿大元','MYR':'马来西亚林吉特',
