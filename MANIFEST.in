@@ -1,0 +1,6 @@
+include LICENSE
+include Makefile
+include README.md
+include requirements*.txt
+include tests/
+include tox.ini
