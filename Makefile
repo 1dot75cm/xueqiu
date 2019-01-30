@@ -11,7 +11,7 @@ build:
 
 upload: build
 	@echo "Upload package to PyPI..."
-	@python setup.py upload
+	@twine upload dist/*
 
 clean:
 	@rm -rf build dist __pycache__ xueqiu.egg-info
