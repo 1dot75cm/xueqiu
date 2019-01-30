@@ -54,7 +54,7 @@ setup(
     test_suite="tests",
     cmdclass={'test': PyTest},
     keywords=['xueqiu', 'snowball', 'stock', 'api', 'api client', 'wrappers'],
-    # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    # https://pypi.org/classifiers/
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
