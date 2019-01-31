@@ -830,8 +830,9 @@ class Fund(Stock):
         self.fund_nav_guess = 0  # 估值 涨跌幅
         self.fund_nav_premium = 0  # 溢价率
         self.fund_history = {}   # 历史净值
-        self.fund_stocks = stocks and create_or_refresh_stocks(stocks[0]) or []  # 成份股
-        self.fund_weight = stocks and stocks[1] or []  # 权重
+        self.fund_stocks = stocks and pd.DataFrame({
+            'stocks': create_or_refresh_stocks(stocks[0]),
+            'weight': stocks[1]})  # 成份股 权重
 
     def __repr__(self):
         return "<xueqiu.Fund %s[%s]>" % (self.name, self.symbol)
@@ -842,8 +843,9 @@ class Fund(Stock):
         resp = sess.get(api.fund_stocks % (self.code, year, mouth))
         stock = [re.findall(api.x_fund_stocks, i)
                     for i in re.split("截止至", resp.text)[1:]]
-        self.fund_stocks = create_or_refresh_stocks([i[0] for i in stock[0]])
-        self.fund_weight = [round(float(i[2])/100,4) for i in stock[0]]
+        self.fund_stocks = pd.DataFrame({
+            'stocks': create_or_refresh_stocks([i[0] for i in stock[0]]),
+            'weight': [round(float(i[2])/100,4) for i in stock[0]]})
 
     def get_fund_nav(self):
         """get fund nav."""
@@ -875,8 +877,8 @@ class Fund(Stock):
         #usd, hkd = exusd(), exhkd()
         #ex = {'USD': usd[0]/usd[1], 'HKD': hkd[0]/hkd[1]}
         #exrate = np.array([ex[i.currency] for i in self.fund_stocks])
-        percent = np.array([i.percent for i in self.fund_stocks])
-        weight = np.array(self.fund_weight)
+        percent = np.array([i.percent for i in self.fund_stocks.stocks])
+        weight = np.array(self.fund_stocks.weight)
         # 当前/(净值*1+sum(涨跌幅*权重*汇率))-1
         fund_percent = sum(percent*weight)/sum(weight)
         self.fund_nav_guess = round(self.fund_nav[1]*(1+fund_percent),4), round(fund_percent,6),
