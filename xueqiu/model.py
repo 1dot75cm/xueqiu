@@ -706,6 +706,18 @@ class Stock:
     def __str__(self):
         return "%s[%s]" % (self.name, self.symbol)
 
+    def _str2date(self, s: str):
+        date = lambda **kw: arrow.now().replace(**kw)
+        n, k = s[:-1], s[-1]
+        bg = {'d':['days',n],
+              'w':['weeks',n],
+              'm':['months',n],
+              'y':['years',n],
+              'c':{'years':-1, 'month':12, 'day':31}}
+        if   s == 'issue': return self.issue_date
+        elif s == 'cyear': return date(**bg['c'])
+        return date(**{bg[k][0]: int(bg[k][1])})
+
     def refresh(self, dt: dict = {}):
         """get current stock data."""
         if not dt:
@@ -797,19 +809,8 @@ class Stock:
         :param period: (optional) set date period, default is `day`.
                 value: day week month quarter year 120m 60m 30m 15m 5m 1m
         """
-        date = lambda **kw: arrow.now().replace(**kw).timestamp
-        bg = {'-1w': date(weeks=-1),
-              '-2w': date(weeks=-2),
-              '-1m': date(months=-1),
-              '-3m': date(months=-3),
-              '-6m': date(months=-6),
-              '-1y': date(years=-1),
-              '-2y': date(years=-2),
-              '-3y': date(years=-3),
-              '-5y': date(years=-5),
-              'issue': self.issue_date.timestamp,
-              'cyear': date(years=-1, month=12, day=31)}
-        begin = len(begin)>5 and arrow.get(begin,tzinfo="Asia/Shanghai").timestamp or bg[begin]
+        begin = len(begin)>5 and arrow.get(begin,tzinfo="Asia/Shanghai").timestamp \
+                             or  self._str2date(begin).timestamp
         end = arrow.get(end).timestamp
         resp = sess.get(api.stock_history % (self.symbol, begin, end, period))
         dt = resp.ok and resp.json()
@@ -859,19 +860,8 @@ class Fund(Stock):
         :param end: (optional) the end date of the results, default is `now`.
         :param size: (optional) the number of results, default is `1024`.
         """
-        date = lambda **kw: arrow.now().replace(**kw).format('YYYY-MM-DD')
-        bg = {'-1w': date(weeks=-1),
-              '-2w': date(weeks=-2),
-              '-1m': date(months=-1),
-              '-3m': date(months=-3),
-              '-6m': date(months=-6),
-              '-1y': date(years=-1),
-              '-2y': date(years=-2),
-              '-3y': date(years=-3),
-              '-5y': date(years=-5),
-              'issue': self.issue_date.format('YYYY-MM-DD'),
-              'cyear': date(years=-1, month=12, day=31)}
-        begin = len(begin)>5 and arrow.get(begin).format('YYYY-MM-DD') or bg[begin]
+        begin = len(begin)>5 and arrow.get(begin).format('YYYY-MM-DD') \
+                             or  self._str2date(begin).format('YYYY-MM-DD')
         end = arrow.get(end).format('YYYY-MM-DD')
         resp = sess.get(api.fund_history % (self.code, begin, end, size))
         df = pd.DataFrame(
