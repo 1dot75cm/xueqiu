@@ -48,8 +48,8 @@ user_stocks = prefix2 + "/v5/stock/portfolio/stock/list.json?uid=%s&pid=-%s&cate
 exrate = "http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/fx/ccpr-notice%s.json"
 _exrate = "http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/fx/ccpr.json"
 fund_nav = prefix5 + "/F10DataApi.aspx?type=lsjz&code=%s&page=1&per=1"  # 基金净值
-#/F10DataApi.aspx?type=lsjz&code=110022&sdate=2019-01-01&edate=2019-01-10&per=20
-fund_history = prefix4 + "/djapi/fund/nav/history/%s?page=%s&size=%s"  # 历史净值
+#/djapi/fund/nav/history/%s?page=%s&size=%s
+fund_history = prefix5 + "/F10DataApi.aspx?type=lsjz&code=%s&sdate=%s&edate=%s&per=%s"  # 历史净值
 fund_stocks = prefix5 + "/FundArchivesDatas.aspx?type=jjcc&code=%s&topline=50&year=%s&month=%s"  # 基金持仓
 #all_fund = "http://fund.eastmoney.com/js/fundcode_search.js"  # 所有基金
 #all_comp "http://fund.eastmoney.com/js/jjjz_gs.js"  # 所有基金公司
@@ -93,4 +93,5 @@ x_post_content = "//div[@class='article__bd__detail']//text()"
 x_post_json = "//script[contains(text(),'user_id')]/text()"
 x_fund_stocks = r"\w{2,6}.html.*?(\w{2,6}).html.>(\w.+?)<.*?>(\d{1,2}.\d{2})%"
 x_fund_nav = "//td/text()"
+x_fund_history = r"(\d{4}-\d{2}-\d{2}).*?(\d+.\d+).*?(\d+.\d+).*?(-?\d+.\d{2})%"
 x_exrate = r"\d{1,3}.\d{2,5}"

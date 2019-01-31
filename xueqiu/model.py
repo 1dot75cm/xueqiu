@@ -797,26 +797,27 @@ class Stock:
         :param period: (optional) set date period, default is `day`.
                 value: day week month quarter year 120m 60m 30m 15m 5m 1m
         """
-        now = arrow.now()
-        bg = {'-1w': now.shift(weeks=-1).timestamp,
-              '-2w': now.shift(weeks=-2).timestamp,
-              '-1m': now.shift(months=-1).timestamp,
-              '-3m': now.shift(months=-3).timestamp,
-              '-6m': now.shift(months=-6).timestamp,
-              '-1y': now.shift(years=-1).timestamp,
-              '-2y': now.shift(years=-2).timestamp,
-              '-3y': now.shift(years=-3).timestamp,
-              '-5y': now.shift(years=-5).timestamp,
+        date = lambda **kw: arrow.now().replace(**kw).timestamp
+        bg = {'-1w': date(weeks=-1),
+              '-2w': date(weeks=-2),
+              '-1m': date(months=-1),
+              '-3m': date(months=-3),
+              '-6m': date(months=-6),
+              '-1y': date(years=-1),
+              '-2y': date(years=-2),
+              '-3y': date(years=-3),
+              '-5y': date(years=-5),
               'issue': self.issue_date.timestamp,
-              'cyear': now.replace(years=-1, month=12, day=31).timestamp}
+              'cyear': date(years=-1, month=12, day=31)}
         begin = len(begin)>5 and arrow.get(begin,tzinfo="Asia/Shanghai").timestamp or bg[begin]
         end = arrow.get(end).timestamp
         resp = sess.get(api.stock_history % (self.symbol, begin, end, period))
         dt = resp.ok and resp.json()
         df = pd.DataFrame(
-            [[arrow.get(i[0]/1000).to('UTF-8')]+i[1:] for i in dt['data']['item']],
-            columns=dt['data']['column'])
-        self.history = df.set_index('timestamp')
+            [[arrow.get(i[0]/1000).to('UTF-8').format('YYYY-MM-DD')]+i[1:]
+                for i in dt['data']['item']],
+            columns=['date']+dt['data']['column'][1:])
+        self.history = df.set_index('date')
 
 
 class Fund(Stock):
@@ -850,20 +851,33 @@ class Fund(Stock):
         nav[1], nav[2] = float(nav[1]), float(nav[2])
         return nav
 
-    def get_fund_histories(self, page: int = 1, size: int = 90):
-        """get history fund nav."""
-        resp = sess.get(api.fund_history % (self.code, page, size))
-        dt = resp.ok and resp.json()['data']
+    def get_fund_histories(self, begin: str = '-1m', end: str = arrow.now(), size: int = 1024):
+        """get fund history data.
+
+        :param begin: the start date of the results.
+                value: -1w -2w -1m -3m -6m -1y -2y -3y -5y cyear issue or YYYY-MM-DD
+        :param end: (optional) the end date of the results, default is `now`.
+        :param size: (optional) the number of results, default is `1024`.
+        """
+        date = lambda **kw: arrow.now().replace(**kw).format('YYYY-MM-DD')
+        bg = {'-1w': date(weeks=-1),
+              '-2w': date(weeks=-2),
+              '-1m': date(months=-1),
+              '-3m': date(months=-3),
+              '-6m': date(months=-6),
+              '-1y': date(years=-1),
+              '-2y': date(years=-2),
+              '-3y': date(years=-3),
+              '-5y': date(years=-5),
+              'issue': self.issue_date.format('YYYY-MM-DD'),
+              'cyear': date(years=-1, month=12, day=31)}
+        begin = len(begin)>5 and arrow.get(begin).format('YYYY-MM-DD') or bg[begin]
+        end = arrow.get(end).format('YYYY-MM-DD')
+        resp = sess.get(api.fund_history % (self.code, begin, end, size))
         df = pd.DataFrame(
-                [list(i.values())[:-1] for i in dt['items']],
-                columns=['date', 'nav', 'percentage'])
-        df = df.set_index('date')
-        self.fund_history = {
-            'count': dt['total_items'],
-            'page': dt['current_page'],
-            'maxpage': dt['total_pages'],
-            'df': df
-        }
+                re.findall(api.x_fund_history, resp.text),
+                columns=['date','nav','cnav','percent'])
+        self.fund_history = df.set_index('date').sort_index(axis=0)
 
     def calc_premium(self):
         """calculate fund premium."""
