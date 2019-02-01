@@ -641,7 +641,7 @@ class Stock:
             code = code.get("symbol") or code.get("code")
 
         stock_api = api.stocks_quote_v4 if code[0] == "F" else api.stock_quote
-        resp = sess.get(stock_api % code)
+        resp = sess.get(stock_api % check_symbol(code))
         self._resp = resp  # for debug
         if resp.ok:
             dt = resp.json()[code] if code[0] == "F" else resp.json()['data']['quote']
@@ -800,7 +800,8 @@ class Stock:
             'list': [Stock(i) for i in dt['industrystocks']]
         }
 
-    def get_histories(self, begin: str = '-1m', end: str = arrow.now(), period: str = 'day'):
+    def get_histories(self, begin: str = '-1m', end: str = arrow.now(),
+                      period: str = 'day', indicator: str = 'kline,ma,pe,pb,ps,pcf,market_capital'):
         """get stock history data.
 
         :param begin: the start date of the results.
@@ -808,11 +809,13 @@ class Stock:
         :param end: (optional) the end date of the results, default is `now`.
         :param period: (optional) set date period, default is `day`.
                 value: day week month quarter year 120m 60m 30m 15m 5m 1m
+        :param indicator: (optional) set stock indicator, default is `kline,ma,pe,pb,ps,pcf,market_capital`.
+                value: kline,ma,macd,kdj,boll,rsi,wr,bias,cci,psy,pe,pb,ps,pcf,market_capital
         """
         begin = len(begin)>5 and arrow.get(begin,tzinfo="Asia/Shanghai").timestamp \
                              or  self._str2date(begin).timestamp
         end = arrow.get(end).timestamp
-        resp = sess.get(api.stock_history % (self.symbol, begin, end, period))
+        resp = sess.get(api.stock_history % (self.symbol, begin, end, period, indicator))
         dt = resp.ok and resp.json()
         df = pd.DataFrame(
             [[arrow.get(i[0]/1000).to('UTF-8').format('YYYY-MM-DD')]+i[1:]
