@@ -469,6 +469,47 @@ date           nav    cnav percent
 2019-01-31  1.1475  1.1475    0.84
 ```
 
+### get_all_funds function
+
+Example:
+```python
+>>> df = get_all_funds()
+>>> df.groupby(by='type').count()
+type       code  name
+ETF-场内    171   171
+QDII        171   171
+QDII-ETF     10    10
+QDII-指数    83    83
+保本型       52    52
+债券型     1613  1613
+债券指数     69    69
+其他创新      2     2
+分级杠杆    132   132
+固定收益    132   132
+定开债券    657   657
+混合-FOF     40    40
+混合型     3167  3167
+理财型      116   116
+联接基金    194   194
+股票型      373   373
+股票指数    462   462
+货币型      665   665
+>>> df[df['code'].str.contains('^510')].head()
+        code          name        type
+7319  510010  交银上证180治理ETF  ETF-场内
+7320  510020  博时上证超大盘ETF   ETF-场内
+7321  510030  华宝上证180价值ETF  ETF-场内
+7322  510050  华夏上证50ETF       ETF-场内
+7323  510060  工银上证央企50ETF   ETF-场内
+>>> df[df['name'].str.contains('恒生')].head()
+        code          name            type
+54    000071  华夏恒生ETF联接A        QDII-指数
+58    000075  华夏恒生ETF联接现汇     QDII-指数
+59    000076  华夏恒生ETF联接现钞     QDII-指数
+761   000948  华夏沪港通恒生ETF联接A  QDII-指数
+919   001149  汇丰晋信恒生龙头指数C   股票指数
+```
+
 ### search function
 
 - `search(query: str = "", query_type: str = "stock", symbol: str = "", count: int = 10, page: int = 1, sort: str = "time", source: str = "user")` - Sends a search request.

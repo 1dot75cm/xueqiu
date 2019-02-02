@@ -111,6 +111,15 @@ def create_or_refresh_stocks(stocks: list):
     return [Stock(i['quote']) for i in dt['items']]
 
 
+def get_all_funds():
+    """Get all funds."""
+    resp = sess.get(api.all_funds)
+    funds = pd.DataFrame(
+        json.loads(resp.text[:-1].split('=')[1]),
+        columns=['code',1,'name','type',2]).drop(columns=[1,2])
+    return funds
+
+
 class Comment:
     """A user-created :class:`Comment <instance_id>` object.
 

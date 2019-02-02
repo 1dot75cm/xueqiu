@@ -51,7 +51,7 @@ fund_nav = prefix5 + "/F10DataApi.aspx?type=lsjz&code=%s&page=1&per=1"  # 基金
 #/djapi/fund/nav/history/%s?page=%s&size=%s
 fund_history = prefix5 + "/F10DataApi.aspx?type=lsjz&code=%s&sdate=%s&edate=%s&per=%s"  # 历史净值
 fund_stocks = prefix5 + "/FundArchivesDatas.aspx?type=jjcc&code=%s&topline=50&year=%s&month=%s"  # 基金持仓
-#all_fund = "http://fund.eastmoney.com/js/fundcode_search.js"  # 所有基金
+all_funds = "http://fund.eastmoney.com/js/fundcode_search.js"  # 所有基金
 #all_comp "http://fund.eastmoney.com/js/jjjz_gs.js"  # 所有基金公司
 
 # selector
