@@ -827,7 +827,7 @@ class Stock:
         resp = sess.get(api.stock_history % (self.symbol, begin, end, period, indicator))
         dt = resp.ok and resp.json()
         df = pd.DataFrame(
-            [[arrow.get(i[0]/1000).to('UTF-8').format('YYYY-MM-DD')]+i[1:]
+            [[arrow.get(i[0]/1000).to('UTF-8').date()]+i[1:]
                 for i in dt['data']['item']],
             columns=['date']+dt['data']['column'][1:])
         self.history = df.set_index('date')
@@ -881,6 +881,7 @@ class Fund(Stock):
         df = pd.DataFrame(
                 re.findall(api.x_fund_history, resp.text),
                 columns=['date','nav','cnav','percent'])
+        df['date'] = pd.to_datetime(df['date'])
         self.fund_history = df.set_index('date').sort_index(axis=0)
 
     def calc_premium(self):
