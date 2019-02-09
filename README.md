@@ -510,6 +510,28 @@ QDII-指数    83    83
 919   001149  汇丰晋信恒生龙头指数C   股票指数
 ```
 
+### get_all_funds_ranking function
+
+Example:
+```python
+>>> df = get_all_funds_ranking(fund_type='fof')  # 开放式基金排行
+>>> df.head()[['code','name','issue_date','nav','current_year']]
+   code    name                      issue_date  nav     current_year
+0  005220  海富通聚优精选混合(FOF)   2017-11-06  0.8277  0.050781
+1  006306  泰达宏利泰和平衡养老(FOF) 2018-10-25  1.0099  0.020513
+2  006042  上投摩根尚睿混合(FOF)     2018-08-15  0.9931  0.011613
+3  005222  泰达宏利全能混合(FOF)C    2017-11-02  0.9803  0.015644
+4  005221  泰达宏利全能混合(FOF)A    2017-11-02  0.9850  0.015883
+>>> df = get_all_funds_ranking(fund_type='ct')  # 场内基金排行
+>>> df.tail()[['code','name','issue_date','nav','-1year','current_year']]
+     code    name                      issue_date  nav    -1year     current_year
+419  150197  国泰国证有色金属行业分级B 2015-03-30  0.3411 -0.715443  -0.038349
+420  150294  南方中证高铁产业指数分级B 2015-06-10  0.4018 -0.543043  -0.057697
+421  150308  富国中证体育产业指数分级B 2015-06-25  0.8470 -0.663614  -0.055753
+422  150264  华宝中证1000指数分级B     2015-06-04  0.3436 -0.661696   0.031840
+423  512590  浦银安盛中证高股息ETF     2019-01-29  1.0032       NaN        NaN
+```
+
 ### search function
 
 - `search(query: str = "", query_type: str = "stock", symbol: str = "", count: int = 10, page: int = 1, sort: str = "time", source: str = "user")` - Sends a search request.

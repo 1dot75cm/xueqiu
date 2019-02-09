@@ -19,7 +19,10 @@ from selenium import webdriver
 import browsercookie
 import requests
 import functools
+import subprocess
+import tempfile
 import arrow
+import json
 import re
 import os
 
@@ -91,6 +94,24 @@ def exrate(date: str = "", code: str = "USD"):
             ext.update({k:float(v)})
         res.append(ext[code])
     return res
+
+def js2obj(jscode: str, objname: str, mode: str = 'w+'):
+    tmp = tempfile.mkstemp()[1]  # 临时文件
+    with open(tmp, mode) as f:
+        f.write(f"{jscode};console.log(JSON.stringify({objname},null,0))")  # 对象,replacer函数,缩进
+    stdout = subprocess.getoutput(f"node {tmp}")
+    return json.loads(stdout)
+
+def str2date(s: str):
+    date = lambda **kw: arrow.now().replace(**kw)
+    n, k = s[:-1], s[-1]
+    bg = {'d':['days',n],
+          'w':['weeks',n],
+          'm':['months',n],
+          'y':['years',n],
+          'c':{'years':-1, 'month':12, 'day':31}}
+    if s == 'cyear': return date(**bg['c'])
+    return date(**{bg[k][0]: int(bg[k][1])})
 
 
 exusd = functools.partial(exrate, code="USD")
