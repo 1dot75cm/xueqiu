@@ -205,6 +205,20 @@ def get_all_funds_ranking(fund_type: str = 'all',
     return df
 
 
+def get_economic(name: str = 'help', search: str = '中国'):
+    """Get economic data from investing.com."""
+    form_data = {'search_text':search,'tab':'ec_event','offset':0,'limit':270}
+    resp = sess.post(api.economic_search, data=form_data)
+    events = {i['name']:i['dataID'] for i in resp.json()['ec_event']}
+    if name == 'help': return events
+    elif name in events.keys() or isinstance(int(name), int):
+        resp = sess.get(api.economic % (events.get(name) or name))
+        cols = ['timestamp','actual','actual_state','forecast','revised']
+        df = pd.DataFrame(resp.json()['attr'])[cols]
+        df['date'] = df['timestamp'].apply(lambda x:arrow.get(x/1000).datetime)
+        return df.set_index('date').drop('timestamp',axis=1)
+
+
 class Comment:
     """A user-created :class:`Comment <instance_id>` object.
 

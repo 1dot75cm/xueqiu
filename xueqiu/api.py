@@ -19,6 +19,7 @@ prefix2 = "https://stock.xueqiu.com"
 prefix3 = "https://api.xueqiu.com"
 prefix4 = "https://danjuanapp.com"
 prefix5 = "http://fundf10.eastmoney.com"
+invest = "https://cn.investing.com"
 homedir = os.getenv('TESTDIR') or os.getenv('HOME') or os.getenv('LOCALAPPDATA')
 cookie_file = platform.system() == "Linux" and \
     os.path.join(homedir, ".xueqiu", "cookie") or \
@@ -96,3 +97,7 @@ x_fund_stocks = r"\w{2,6}.html.*?(\w{2,6}).html.>(\w.+?)<.*?>(\d{1,2}.\d{2})%"
 x_fund_nav = "//td/text()"
 x_fund_history = r"(\d{4}-\d{2}-\d{2}).*?(\d+.\d+).*?(\d+.\d+).*?(-?\d+.\d{2})%"
 x_exrate = r"\d{1,3}.\d{2,5}"
+
+# economy
+economic = "https://sbcharts.investing.com/events_charts/us/%s.json"  # 宏观经济数据
+economic_search = invest + "/search/service/SearchInnerPage"

@@ -532,6 +532,41 @@ Example:
 423  512590  浦银安盛中证高股息ETF     2019-01-29  1.0032       NaN        NaN
 ```
 
+### get_economic function
+
+Example:
+```python
+>>> get_economic()  # 获取经济指标
+{'中国人民银行利率': '1083',
+ '中国季度国内生产总值(GDP)年率': '461',
+ '中国规模以上工业增加值年率': '462',
+ '中国官方制造业采购经理人指数(PMI)': '594',
+ '中国财新制造业采购经理人指数(PMI)': '753',
+ '中国失业率': '1793',
+ '中国贸易帐 (美元)': '466',
+ '中国台湾利率决议': '1117',
+......
+>>> get_economic(search='美国')  # 获取经济指标 - 美国
+{'美国失业率': '300',
+ '美国总统选举': '371',
+ '美国ADP就业人数': '1',
+ '美国ISM制造业PMI': '173',
+ '美国零售销售月率': '256',
+ '美国营建许可总数': '25',
+ '美国ISM非制造业PMI': '176',
+ '美国核心零售销售月率': '63',
+......
+>>> df = get_economic('中国财新制造业采购经理人指数(PMI)')  # 获取财新PMI
+>>> df.tail()
+date        actual actual_state  forecast  revised
+2018-09-30    50.0         down      50.5      NaN
+2018-11-01    50.1           up      49.9      NaN
+2018-12-03    50.2           up      50.1      NaN
+2019-01-02    49.7         down      50.3      NaN
+2019-02-01    48.3         down      49.5      NaN
+>>> df.to_excel('output.xls')  # 导出excel
+```
+
 ### search function
 
 - `search(query: str = "", query_type: str = "stock", symbol: str = "", count: int = 10, page: int = 1, sort: str = "time", source: str = "user")` - Sends a search request.
