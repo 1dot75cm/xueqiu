@@ -567,6 +567,52 @@ date        actual actual_state  forecast  revised
 >>> df.to_excel('output.xls')  # 导出excel
 ```
 
+### get_economic_of_china function
+
+Example:
+```python
+>>> get_economic_of_china(search='总人口')
+[{'id': 'A01050201', 'name': '民族自治地方总人口数'},
+ {'id': 'A030301', 'name': '年末总人口'},
+ {'id': 'A030501', 'name': '人口普查总人口'},
+ {'id': 'A030508', 'name': '人口普查0-14岁人口占总人口比重'},
+......
+>>> df = get_economic_of_china('A030101,A030102,A030103', time_period='1949-')
+>>> df.to_period('A').tail()
+   年末总人口  男性人口  女性人口
+1953  58796.0  30468.0  28328.0
+1952  57482.0  29833.0  27649.0
+1951  56300.0  29231.0  27069.0
+1950  55196.0  28669.0  26527.0
+1949  54167.0  28145.0  26022.0
+>>> get_economic_of_china(category='month', search='居民消费价格指数')
+[{'id': 'A01010101', 'name': '居民消费价格指数(上年同月=100)'},
+ {'id': 'A01010102', 'name': '食品烟酒类居民消费价格指数(上年同月=100)'},
+ {'id': 'A01010103', 'name': '衣着类居民消费价格指数(上年同月=100)'},
+ {'id': 'A01010104', 'name': '居住类居民消费价格指数(上年同月=100)'},
+......
+>>> get_economic_of_china("A01010101", category='month').to_period('M')
+    居民消费价格指数(上年同月=100)
+2018-12  101.860698
+2018-11  102.175041
+2018-10  102.543151
+2018-09  102.472394
+......
+>>> get_economic_of_china(category='month_by_state', search='region')
+[{'id': '110000', 'name': '北京市'},
+ {'id': '120000', 'name': '天津市'},
+ {'id': '130000', 'name': '河北省'},
+ {'id': '140000', 'name': '山西省'},
+......
+>>> get_economic_of_china("A03010101", region='210000,130000', category='month_by_state').to_period('M')
+        辽宁省  河北省
+2018-12  333.6  381.0
+2018-11  311.0  398.3
+2018-10  274.3  429.2
+2018-09  273.5  456.2
+......
+```
+
 ### search function
 
 - `search(query: str = "", query_type: str = "stock", symbol: str = "", count: int = 10, page: int = 1, sort: str = "time", source: str = "user")` - Sends a search request.

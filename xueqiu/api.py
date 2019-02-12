@@ -101,3 +101,5 @@ x_exrate = r"\d{1,3}.\d{2,5}"
 # economy
 economic = "https://sbcharts.investing.com/events_charts/us/%s.json"  # 宏观经济数据
 economic_search = invest + "/search/service/SearchInnerPage"
+china_stats = "http://data.stats.gov.cn/easyquery.htm"  # 国家统计局数据
+china_stats_adv = "http://data.stats.gov.cn/adv.htm"
