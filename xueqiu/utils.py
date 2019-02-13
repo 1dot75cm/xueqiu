@@ -95,11 +95,9 @@ def exrate(date: str = "", code: str = "USD"):
         res.append(ext[code])
     return res
 
-def js2obj(jscode: str, objname: str, mode: str = 'w+'):
-    tmp = tempfile.mkstemp()[1]  # 临时文件
-    with open(tmp, mode) as f:
-        f.write(f"{jscode};console.log(JSON.stringify({objname},null,0))")  # 对象,replacer函数,缩进
-    stdout = subprocess.getoutput(f"node {tmp}")
+def js2obj(jscode: str, objname: str):
+    jscode = f"{jscode};console.log(JSON.stringify({objname},null,0))"  # 对象,replacer函数,缩进
+    stdout = subprocess.check_output('node', input=jscode.encode())
     return json.loads(stdout)
 
 def str2date(s: str):
