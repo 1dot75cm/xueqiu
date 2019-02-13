@@ -10,7 +10,8 @@ This module implements a humanize XueQiu API wrappers.
 :license: MIT, see LICENSE for more details.
 """
 
-__all__ = ['news', 'search', 'Selector', 'Stock', 'Fund', 'Post', 'Comment', 'User']
+__all__ = ['news', 'search', 'Selector', 'Stock', 'Fund', 'Post', 'Comment', 'User',
+           'get_all_funds', 'get_all_funds_ranking', 'get_economic', 'get_economic_of_china']
 
 from .utils import clean_html
 from .utils import check_symbol

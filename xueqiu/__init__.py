@@ -18,10 +18,16 @@ from .model import Fund
 from .model import Post
 from .model import Comment
 from .model import User
+# funds api
+from .model import get_all_funds
+from .model import get_all_funds_ranking
+# economic api
+from .model import get_economic
+from .model import get_economic_of_china
 
 
 __pkgname__ = "xueqiu"
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __license__ = "MIT"
 __url__ = "https://github.com/1dot75cm/xueqiu"
 __descript__ = "A humanize XueQiu API wrappers."
