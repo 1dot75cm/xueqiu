@@ -18,6 +18,7 @@ from fake_useragent import UserAgent
 from selenium import webdriver
 import browsercookie
 import requests
+import requests_cache
 import functools
 import subprocess
 import tempfile
@@ -52,8 +53,8 @@ def get_cookies():
         os.makedirs(os.path.dirname(api.cookie_file), exist_ok=True)
     return cj
 
-def get_session(sess = '', host: str = api.prefix):
-    sess = sess or requests.sessions.Session()
+def get_session(sess = '', host: str = api.prefix, expire: int = 3600*24*7):
+    sess = sess or requests_cache.CachedSession(expire_after=expire)
     sess.headers['Origin'] = host
     sess.headers['Referer'] = host
     sess.headers['User-Agent'] = UserAgent().random  # Xueqiu Android 11.8.2
