@@ -613,6 +613,28 @@ Example:
 ......
 ```
 
+### get_data_yahoo function
+
+Example:
+```python
+>>> get_data_yahoo('BABA', '-1y').head()
+Date        High        Low         Open        Close       Volume    Adj Close
+2018-02-22  190.740005  187.770004  190.199997  188.750000  12282800  188.750000
+2018-02-23  193.404999  189.949997  190.179993  193.289993  16937300  193.289993
+2018-02-26  195.149994  190.649994  194.460007  194.190002  19463100  194.190002
+2018-02-27  193.567001  187.210007  192.589996  188.259995  23218500  188.259995
+2018-02-28  188.240005  185.000000  187.250000  186.139999  19367600  186.139999
+```
+
+### get_quota_yahoo function
+
+Example:
+```python
+>>> get_quote_yahoo('BABA')[['marketCap','price']]
+         marketCap   price
+BABA  458608476160  176.92
+```
+
 ### search function
 
 - `search(query: str = "", query_type: str = "stock", symbol: str = "", count: int = 10, page: int = 1, sort: str = "time", source: str = "user")` - Sends a search request.

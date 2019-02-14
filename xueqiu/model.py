@@ -22,6 +22,7 @@ from . import api
 from lxml import etree
 from urllib.parse import urlencode
 from urllib.parse import urljoin
+import pandas_datareader.data as web
 import pandas as pd
 import numpy as np
 import arrow
@@ -286,6 +287,30 @@ def get_economic_of_china(indicator: str = 'help',
     for i in resp['datanodes']:
         data[ck[i['wds'][_reg['idx']]['valuecode']]].append(i['data']['data'])
     return pd.DataFrame(data, index=pd.to_datetime(index))
+
+
+def get_data_yahoo(symbol: str, start: str = '-1y', end: str = None,
+                   session = sess, **kwargs):
+    """a yahoo stock api wrapper.
+
+    :param symbol: stock symbol or code.
+    :param start: (optional) start date of the custom return, default is `-1y`.
+        value: -nd -nw -nm -ny cyear or YYYY-MM-DD
+    :param end: (optional) the end date of the results, default is `now`.
+    :param session: (optional) use an existing session, default is `sess`.
+    :param **kwargs: please see `pandas_datareader.data.DataReader` reference.
+    :return: pd.DataFrame
+    """
+    begin = len(start)>5 and arrow.get(start).format('YYYY-MM-DD') \
+                         or  str2date(start).format('YYYY-MM-DD')
+    df = web.get_data_yahoo(check_symbol(symbol,'yahoo'), start=begin,
+            end=end, session=session, **kwargs)
+    return df
+
+def get_quote_yahoo(symbol: str, session = sess, **kwargs):
+    """get stock summary from yahoo.com."""
+    symbol = check_symbol(symbol,'yahoo')
+    return web.get_quote_yahoo(symbol, session=session, **kwargs)
 
 
 class Comment:
@@ -876,6 +901,7 @@ class Stock:
         self.popstocks = []  # 粉丝关注股票
         self.industries = {} # 同行业股票
         self.history = {}    # 历史行情
+        self.summary = get_quote_yahoo(self.symbol)  # 雅虎财经
 
     def __repr__(self):
         return "<xueqiu.Stock %s[%s]>" % (self.name, self.symbol)

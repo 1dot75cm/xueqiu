@@ -66,13 +66,20 @@ def get_session(sess = '', host: str = api.prefix, expire: int = 3600*24*7):
 def clean_html(tree: str):
     return html.fromstring(tree).text_content()
 
-def check_symbol(code: str):
-    code = str(code)
+def check_symbol(code: str, source: str = 'xueqiu'):
+    # xueqiu: 美股 FB BABA, 港股 00700 HKHSI, A股 SH601318 SZ000333
+    # yahoo: 美股 FB BABA, 港股 0700.HK ^HSI, A股 601318.SS 000333.SZ
+    match = re.search(r'\d+', str(code))
+    code = match and match[0] or str(code)
+    sym = {'xueqiu': {'sz':'SZ'+code,  'sh':'SH'+code,  'hk':code},
+           'yahoo':  {'sz':code+'.SZ', 'sh':code+'.SS', 'hk':code[1:]+'.HK'}}
     if len(code) > 5:
         if code[:2] in ["30", "39", "00"]:
-            return "SZ" + code
+            return sym[source]['sz']
         elif code[:2] in ["60", "50", "51"]:
-            return "SH" + code
+            return sym[source]['sh']
+    elif len(code) == 5:
+        return sym[source]['hk']
     return code
 
 def exrate(date: str = "", code: str = "USD"):
