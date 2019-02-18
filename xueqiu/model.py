@@ -341,6 +341,24 @@ def get_hsgt_history(mkt_type: str = 'shgt', begin: str = '-1m', page: int = 1):
     df.index = pd.to_datetime(df.index)
     return df.rename(columns=sheet.hsgt)
 
+def get_hsgt_top10(mkt_type: str = 'shgt', date: str = arrow.now()):
+    """get shanghai-shenzhen-hongkong top10 stock. 沪深港通top10"""
+    _date = arrow.get(date).format('YYYY-MM-DD')
+    mkt = {'shgt':[1,'hgt'], 'szgt':[3,'sgt'], 'hksh':[2,'ggt'], 'hksz':[4,'ggt']}
+    params = dict(token='70f12f2f4f091e459a279469fe49eca5', type='HSGTCJB',
+        sty=mkt[mkt_type][1], st='', sr=-1, page=1, pagesize=50,
+        filter='(MarketType=%s)(DetailDate=^%s^)'%(mkt[mkt_type][0], _date))
+    resp = sess.get(api.margin, params=params)
+    df = pd.read_json(resp.text).drop(columns=['MarketType','DetailDate'])
+    if mkt_type == 'hksh':
+        df = df.drop(columns=['GGTSCJJE','GGTSJME','GGTSMCJE','GGTSMRJE','Rank1'])
+    elif mkt_type == 'hksz':
+        df = df.drop(columns=['GGTHCJJE','GGTHJME','GGTHMCJE','GGTHMRJE','Rank'])
+        df = df.rename({'Rank1':'Rank'}, axis=1)
+    else:
+        df = df.drop(columns='Rank1')
+    return df.set_index('Rank').sort_index()
+
 
 class Comment:
     """A user-created :class:`Comment <instance_id>` object.

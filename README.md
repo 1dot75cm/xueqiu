@@ -707,6 +707,19 @@ DetailDate  当日资金流入  当日余额  当日成交净买额  领涨股  
 ...
 ```
 
+### get_hsgt_top10 function
+
+Example:
+```python
+>>> get_hsgt_top10(mkt_type='shgt',date='2019-02-22')  # 沪股通成交额top10
+Rank  Code  Name   Close  ChangePercent  HGTJME  HGTMRJE  HGTMCJE    HGTCJJE
+1  601318  中国平安 67.02  2.4927   353346111  738675531  385329420  1124004951
+2  600030  中信证券 22.43  10.0049 -207273453  319115930  526389383   845505313
+3  600519  贵州茅台 726.01 0.7997   254156043  448239518  194083475   642322993
+4  600036  招商银行 30.63  1.8285   346146568  402323371   56176803   458500174
+...
+```
+
 ### search function
 
 - `search(query: str = "", query_type: str = "stock", symbol: str = "", count: int = 10, page: int = 1, sort: str = "time", source: str = "user")` - Sends a search request.
