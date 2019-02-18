@@ -45,6 +45,36 @@ pro_users = prefix + "/recommend/user/stock_hot_user.json?symbol=%s&start=0&coun
 user_stocks = prefix2 + "/v5/stock/portfolio/stock/list.json?uid=%s&pid=-%s&category=1&size=%s" # 用户关注
 # pid 全球1, 沪深5, 港股7, 美股6
 
+# stock sheet
+#api.xueqiu.com/stock/f10/balsheet.csv?symbol=SH601318&page=1&size=1000
+#api.xueqiu.com/stock/f10/incstatement.csv?symbol=SH601318&page=1&size=1000
+#api.xueqiu.com/stock/f10/cfstatement.csv?symbol=SH601318&page=1&size=1000
+income = prefix2 + "/v5/stock/finance/%s/income.json?symbol=%s&type=%s&is_detail=true&count=%s"  # 利润
+balance = prefix2 + "/v5/stock/finance/%s/balance.json?symbol=%s&type=%s&is_detail=true&count=%s"  # 资产
+cash_flow = prefix2 + "/v5/stock/finance/%s/cash_flow.json?symbol=%s&type=%s&is_detail=true&count=%s"  # 现金
+indicator = prefix2 + "/v5/stock/finance/%s/indicator.json?symbol=%s&type=%s&is_detail=true&count=%s"  # 主要指标
+#/v5/stock/finance/cn/special_indicator.json?count=5&type=&symbol=SH601318  # 专项指标
+business = prefix2 + "/v5/stock/finance/%s/business.json?symbol=%s&is_detail=true&count=%s"  # 主营业务构成
+
+# stock summary
+# A股 主要指标 行业 概念 公司简介 行业对比 股本股东 公司高管 分红融资 机构持仓 经营评述
+# 港股 主要指标 行业 公司简介 股本股东 公司高管 持股变动 分红派息
+# 美股 主要指标 概念 公司简介 股本股东 公司高管 持股变动 分红派息 机构持仓
+f10_indicator = prefix2 + "/v5/stock/f10/%s/indicator.json?symbol=%s"  # |主要指标
+f10_industry = prefix2 + "/v5/stock/f10/%s/industry.json?symbol=%s"  # |行业
+#概念/v5/stock/f10/%s/concept.json?symbol=SZ000725&ind_code=00031590
+f10_company = prefix2 + "/v5/stock/f10/%s/company.json?symbol=%s"  # |公司简介
+f10_industry_compare = prefix2 + "/v5/stock/f10/%s/industry/compare.json?type=all&symbol=%s"  # |行业对比
+f10_shareschg = prefix2 + "/v5/stock/f10/%s/shareschg.json?symbol=%s"  # 股本变动 |股本股东
+f10_holders = prefix2 + "/v5/stock/f10/%s/holders.json?symbol=%s"  # 股东人数
+f10_top_holders = prefix2 + "/v5/stock/f10/%s/top_holders.json?circula=1&symbol=%s"  # 十大股东0 十大流通股东1
+f10_skholder = prefix2 + "/v5/stock/f10/%s/skholder.json?symbol=%s"  # 高管简介 |公司高管
+f10_skholderchg = prefix2 + "/v5/stock/f10/%s/skholderchg.json?symbol=%s"  # 高管增减持
+f10_bonus = prefix2 + "/v5/stock/f10/%s/bonus.json?size=100&page=1&symbol=%s"  # 分红增发配股 |分红融资
+f10_org_change = prefix2 + "/v5/stock/f10/%s/org_holding/change.json?symbol=%s"  # 机构持仓汇总 |机构持仓
+f10_org_detail = prefix2 + "/v5/stock/f10/%s/org_holding/detail.json?symbol=%s"  # 机构持仓明细
+f10_business_analysis = prefix2 + "/v5/stock/f10/%s/business_analysis.json?size=20&page=1&symbol=%s"  # |经营评述
+
 # fund
 exrate = "http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/fx/ccpr-notice%s.json"
 _exrate = "http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/fx/ccpr.json"

@@ -325,6 +325,9 @@ others
     - :param `end`: (optional) the end date of the results, default is `now`.
     - :param `period`: (optional) set date period, default is `day`.
         - value: day week month quarter year 120m 60m 30m 15m 5m 1m
+- `income(quarter: str = 'all', count: int = 12, lang: str = 'cn')` - get stock income sheet.
+- `balance(quarter: str = 'all', count: int = 12, lang: str = 'cn')` - get stock balance sheet.
+- `cash_flow(quarter: str = 'all', count: int = 12, lang: str = 'cn')` - get stock cash flow sheet.
 
 Example:
 ```python
@@ -407,6 +410,27 @@ min      9.728900    1.911000    1.031044
 50%     11.504900    2.237300    1.197700
 75%     12.628600    2.345200    1.251150
 max     15.596700    2.935400    1.559700
+>>> s.income()[['净利润','营业总收入']]
+report_name  净利润        营业总收入
+2018Q3       8.948900e+10  7.504560e+11
+2018Q2       6.477000e+10  5.348140e+11
+2018Q1       2.895100e+10  3.104520e+11
+2017Q4       9.997800e+10  8.908820e+11
+...
+>>> s.balance()[['资产合计','负债合计']]
+report_name  资产合计      负债合计
+2018Q3       6.910935e+12  6.260499e+12
+2018Q2       6.851431e+12  6.216339e+12
+2018Q1       6.725766e+12  6.108353e+12
+2017Q4       6.493075e+12  5.905158e+12
+...
+>>> s.cash_flow()['经营活动现金流量净额']
+report_name  经营活动现金流量净额
+2018Q3    1.775950e+11
+2018Q2    1.616070e+11
+2018Q1    1.398670e+11
+2017Q4    1.212830e+11
+...
 ```
 
 ### Fund class

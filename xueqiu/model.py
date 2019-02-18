@@ -19,6 +19,7 @@ from .utils import sess
 from .utils import str2date
 from .utils import js2obj
 from . import api
+from . import sheet
 from lxml import etree
 from urllib.parse import urlencode
 from urllib.parse import urljoin
@@ -901,7 +902,8 @@ class Stock:
         self.popstocks = []  # 粉丝关注股票
         self.industries = {} # 同行业股票
         self.history = {}    # 历史行情
-        self.summary = get_quote_yahoo(self.symbol)  # 雅虎财经
+        self.base_indicator_yahoo = get_quote_yahoo(self.symbol)  # 基本指标(雅虎)
+        self.base_indicator = self.indicator()  # 基本指标
 
     def __repr__(self):
         return "<xueqiu.Stock %s[%s]>" % (self.name, self.symbol)
@@ -1025,6 +1027,69 @@ class Stock:
                 for i in dt['data']['item']],
             columns=['date']+dt['data']['column'][1:])
         self.history = df.set_index('date')
+
+    def _get_sheet(self, sheet_type: str = 'cash_flow', quarter: str = 'all', count: int = 12, lang: str = 'cn'):
+        sht = {'income': [api.income, sheet.income_lang],
+               'balance': [api.balance, sheet.balance_lang],
+               'cash_flow': [api.cash_flow, sheet.cash_flow_lang],
+               'indicator': [api.indicator, sheet.indicator_lang]}
+        reg = {'SH':'cn', 'SZ':'cn', 'HK':'hk', 'NYSE':'us'}
+        region = reg[self.exchange]
+        resp = sess.get(sht[sheet_type][0] % (region, self.symbol, quarter, count))
+        dt = json.loads(resp.text.replace('一季报','Q1').replace('中报','Q2').replace('三季报','Q3').replace('年报','Q4'))
+        df = pd.DataFrame([{j: i[j][0] if isinstance(i[j], list) else i[j]
+            for j in i} for i in dt['data']['list']]).set_index('report_name')
+        if lang == 'cn':
+            df = df.rename(columns=sht[sheet_type][1][region])
+        return df
+
+    def indicator(self, quarter: str = 'last', count: int = 12, lang: str = 'cn'):
+        """get stock indicator.
+
+        :param quarter: (optional) sheet type, default is `last`.
+            value: S0(single quarter) Q1-Q4 all last.
+        :param count: (optional) the number of results, default is `12`.
+        :param lang: (optional) sheet language, default is `cn`.
+        """
+        if quarter == 'last' or self.exchange == 'HK':
+            reg = {'SH':'cn', 'SZ':'cn', 'HK':'hk', 'NYSE':'us'}
+            region = reg[self.exchange]
+            columns = sheet.f10_indicator_ks['base'].copy()
+            columns.update(sheet.f10_indicator_ks[region])
+            resp = sess.get(api.f10_indicator % (region, self.symbol))
+            df = pd.DataFrame(resp.json()['data']['items'])
+            return df.rename(columns=columns)
+        return self._get_sheet('indicator', quarter.upper(), count)
+
+    def income(self, quarter: str = 'all', count: int = 12, lang: str = 'cn'):
+        """get stock income sheet.
+
+        :param quarter: (optional) sheet type, default is `all`.
+            value: S0(single quarter) Q1-Q4 all.
+        :param count: (optional) the number of results, default is `12`.
+        :param lang: (optional) sheet language, default is `cn`.
+        """
+        return self._get_sheet('income', quarter.upper(), count)
+
+    def balance(self, quarter: str = 'all', count: int = 12, lang: str = 'cn'):
+        """get stock balance sheet.
+
+        :param quarter: (optional) sheet type, default is `all`.
+            value: S0(single quarter) Q1-Q4 all.
+        :param count: (optional) the number of results, default is `12`.
+        :param lang: (optional) sheet language, default is `cn`.
+        """
+        return self._get_sheet('balance', quarter.upper(), count)
+
+    def cash_flow(self, quarter: str = 'all', count: int = 12, lang: str = 'cn'):
+        """get stock cash flow sheet.
+
+        :param quarter: (optional) sheet type, default is `all`.
+            value: S0(single quarter) Q1-Q4 all.
+        :param count: (optional) the number of results, default is `12`.
+        :param lang: (optional) sheet language, default is `cn`.
+        """
+        return self._get_sheet('cash_flow', quarter.upper(), count)
 
 
 class Fund(Stock):
