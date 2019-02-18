@@ -329,6 +329,19 @@ def get_stock_margin(code: str = '', begin: str = '-3m', page: int = 1, mkt_type
     return df.rename(columns=sheet.margin)
 
 
+def get_hsgt_history(mkt_type: str = 'shgt', begin: str = '-1m', page: int = 1):
+    """get shanghai-shenzhen-hongkong stock history. 沪深港通历史数据"""
+    begin = len(begin)>5 and arrow.get(begin) or str2date(begin)
+    count = (arrow.now()-begin).days
+    mkt = {'shgt':1, 'szgt':3, 'hksh':2, 'hksz':4}
+    params = dict(token='70f12f2f4f091e459a279469fe49eca5', type='HSGTHIS',
+        st='DetailDate', sr=-1, p=page, ps=count, filter='(MarketType=%s)'%mkt[mkt_type])
+    resp = sess.get(api.margin, params=params)
+    df = pd.read_json(resp.text).set_index('DetailDate')
+    df.index = pd.to_datetime(df.index)
+    return df.rename(columns=sheet.hsgt)
+
+
 class Comment:
     """A user-created :class:`Comment <instance_id>` object.
 

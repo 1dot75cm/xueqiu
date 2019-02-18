@@ -559,6 +559,20 @@ margin = dict(
     rzrqye='融资融券余额',
     rzrqyecz='融资融券余额差值')
 
+hsgt = dict(
+    DetailDate='日期',
+    DRZJLR='当日资金流入',
+    DRYE='当日余额',
+    LSZJLR='历史资金累计流入',
+    DRCJJME='当日成交净买额',
+    MRCJE='买入成交额',
+    MCCJE='卖出成交额',
+    LCG='领涨股',
+    LCGCode='代码',
+    LCGZDF='领涨股涨跌幅',
+    SSEChange='指数',
+    SSEChangePrecent='涨跌幅')
+
 income_lang = dict(
     cn=income_lang_cn,
     hk=income_lang_hk,
