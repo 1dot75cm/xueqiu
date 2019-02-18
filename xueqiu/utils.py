@@ -114,6 +114,7 @@ def str2date(s: str):
     bg = {'d':['days',n],
           'w':['weeks',n],
           'm':['months',n],
+          'q':['quarters',n],
           'y':['years',n],
           'c':{'years':-1, 'month':12, 'day':31}}
     if s == 'cyear': return date(**bg['c'])

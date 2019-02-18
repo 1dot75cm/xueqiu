@@ -314,6 +314,21 @@ def get_quote_yahoo(symbol: str, session = sess, **kwargs):
     return web.get_quote_yahoo(symbol, session=session, **kwargs)
 
 
+def get_stock_margin(code: str = '', begin: str = '-3m', page: int = 1, mkt_type: str = 'all'):
+    """get stock margin. 融资融券"""
+    begin = len(begin)>5 and arrow.get(begin) or str2date(begin)
+    count = (arrow.now()-begin).days
+    mkt = {'sh':['HS',"(market='SH')"], 'sz':['HS',"(market='SZ')"], 'all':['LS','']}
+    params = dict(token='70f12f2f4f091e459a279469fe49eca5', st='tdate', sr=-1, p=page, ps=count) #js={pages:(tp),data:(x)}
+    stock_param = dict(type='RZRQ_DETAIL_NJ', filter='(scode=%s)'%check_symbol(code)[2:])
+    mkt_param = dict(type='RZRQ_%sTOTAL_NJ'%mkt[mkt_type][0], filter=mkt[mkt_type][1], mk_time=1)
+    params.update(code and stock_param or mkt_param)
+    resp = sess.get(api.margin, params=params)
+    df = pd.read_json(resp.text).set_index('tdate')
+    df.index = pd.to_datetime(df.index)
+    return df.rename(columns=sheet.margin)
+
+
 class Comment:
     """A user-created :class:`Comment <instance_id>` object.
 

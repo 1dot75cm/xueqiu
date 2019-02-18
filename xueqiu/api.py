@@ -74,6 +74,7 @@ f10_bonus = prefix2 + "/v5/stock/f10/%s/bonus.json?size=100&page=1&symbol=%s"  #
 f10_org_change = prefix2 + "/v5/stock/f10/%s/org_holding/change.json?symbol=%s"  # 机构持仓汇总 |机构持仓
 f10_org_detail = prefix2 + "/v5/stock/f10/%s/org_holding/detail.json?symbol=%s"  # 机构持仓明细
 f10_business_analysis = prefix2 + "/v5/stock/f10/%s/business_analysis.json?size=20&page=1&symbol=%s"  # |经营评述
+margin = "http://dcfm.eastmoney.com/EM_MutiSvcExpandInterface/api/js/get"  # 融资融券
 
 # fund
 exrate = "http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/fx/ccpr-notice%s.json"
