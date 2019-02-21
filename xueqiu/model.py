@@ -359,6 +359,24 @@ def get_hsgt_top10(mkt_type: str = 'shgt', date: str = arrow.now()):
         df = df.drop(columns='Rank1')
     return df.set_index('Rank').sort_index()
 
+def get_hsgt_holding(code: str = '', mkt_type: str = 'north', date: str = arrow.now(),
+                     page: int = 1, count: int = 50):
+    """get shanghai-shenzhen-hongkong stock holding. 沪深港通持股"""
+    #沪港通及深港通持股纪录查询服务
+    #http://sc.hkexnews.hk/TuniS/www2.hkexnews.hk/Shareholding-Disclosures/Stock-Connect-Shareholding
+    _date = arrow.get(date).format('YYYY-MM-DD')
+    mkt = {'north':"001','003", 'shgt':'001', 'szgt':'003', 'south':'S'}
+    params = dict(token='70f12f2f4f091e459a279469fe49eca5', type='HSGTHDSTA',
+        st='HDDATE,SHAREHOLDPRICE', sr=3, p=page, ps=count,
+        filter="(MARKET in ('%s'))(HDDATE=^%s^)"%(mkt[mkt_type],_date))
+    if code:
+        params.update({"filter":"(SCODE='%s')"%check_symbol(code)[2:]})
+    resp = sess.get(api.margin, params=params)
+    df = pd.read_json(resp.text).set_index('HDDATE')\
+            .drop(columns=['HKCODE','MARKET','Zb','Zzb'])
+    df.index = pd.to_datetime(df.index)
+    return df.rename(columns=sheet.hsgt_hold)
+
 
 class Comment:
     """A user-created :class:`Comment <instance_id>` object.

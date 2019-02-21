@@ -573,6 +573,20 @@ hsgt = dict(
     SSEChange='指数',
     SSEChangePrecent='涨跌幅')
 
+hsgt_hold = dict(
+    HDDATE='日期',
+    SCODE='代码',
+    SNAME='名称',
+    CLOSEPRICE='收盘价',
+    ZDF='涨跌幅',
+    SHAREHOLDSUM='持股数量',
+    ShareHoldSumChg='持股数量变化',
+    SHAREHOLDPRICE='持股市值',
+    SHARESRATE='持股占A股比例',
+    SHAREHOLDPRICEONE='持股市值变化1日',
+    SHAREHOLDPRICEFIVE='持股市值变化5日',
+    SHAREHOLDPRICETEN='持股市值变化10日')
+
 income_lang = dict(
     cn=income_lang_cn,
     hk=income_lang_hk,

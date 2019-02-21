@@ -720,6 +720,28 @@ Rank  Code  Name   Close  ChangePercent  HGTJME  HGTMRJE  HGTMCJE    HGTCJJE
 ...
 ```
 
+### get_hsgt_holding function
+
+Example:
+```python
+>>> hold = get_hsgt_holding(mkt_type='north', date='2019-02-22')  # 北向持股
+>>> hold[['代码','名称','持股市值','持股数量','持股占A股比例']]
+HDDATE        代码     名称    持股市值        持股数量   持股占A股比例
+2019-02-22  600519   贵州茅台  8.517306e+10   117316644     9.18
+2019-02-22  601318   中国平安  5.141756e+10   767197321     6.85
+2019-02-22  000333   美的集团  4.714754e+10  1033710522    15.52
+2019-02-22  600276   恒瑞医药  3.194746e+10   481862195    12.95
+...
+>>> hold = get_hsgt_holding(code='601318', date='2019-02-22')  # 个股持股，最多近1月数据
+>>> hold[['代码','名称','持股市值','持股数量','持股占A股比例']]
+HDDATE        代码     名称    持股市值      持股数量   持股占A股比例
+2019-02-22  601318  中国平安  5.141756e+10  767197321     6.85
+2019-02-21  601318  中国平安  4.981185e+10  761765628     6.80
+2019-02-20  601318  中国平安  4.991939e+10  757732051     6.80
+2019-02-19  601318  中国平安  4.943077e+10  752600092     6.72
+...
+```
+
 ### search function
 
 - `search(query: str = "", query_type: str = "stock", symbol: str = "", count: int = 10, page: int = 1, sort: str = "time", source: str = "user")` - Sends a search request.
