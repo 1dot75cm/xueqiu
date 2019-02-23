@@ -24,6 +24,7 @@ from .model import get_all_funds_ranking
 # economic api
 from .model import get_economic
 from .model import get_economic_of_china
+from .baidu import BaiduIndex
 
 
 __pkgname__ = "xueqiu"

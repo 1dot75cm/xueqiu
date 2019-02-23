@@ -134,3 +134,10 @@ economic = "https://sbcharts.investing.com/events_charts/us/%s.json"  # 宏观�
 economic_search = invest + "/search/service/SearchInnerPage"
 china_stats = "http://data.stats.gov.cn/easyquery.htm"  # 国家统计局数据
 china_stats_adv = "http://data.stats.gov.cn/adv.htm"
+
+# baiduindex
+baidu_search_live = "http://index.baidu.com/api/LiveApi/getLive?region=&word="  # live
+baidu_search_index = "http://index.baidu.com/api/SearchApi/index"  # 搜索指数
+baidu_feed_index = "http://index.baidu.com/api/FeedSearchApi/getFeedIndex"  # 资讯指数
+baidu_news_index = "http://index.baidu.com/api/NewsApi/getNewsIndex"  # 媒体指数
+baidu_data_key = "http://index.baidu.com/Interface/api/ptbk"

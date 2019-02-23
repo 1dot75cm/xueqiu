@@ -28,15 +28,22 @@ import re
 import os
 
 
-def get_cookies():
+def get_cookies_by_domain(domain, lazy):
+    domains = domain.find(',')>0 and domain.split(',') or [domain]
+    cookies = []
+    for domain in domains:
+        cookies += [i for i in browsercookie.load()
+            if i.domain == domain and i.value or\
+               lazy and i.domain.find(domain)>0 and i.value]
+    return cookies
+
+def get_cookies(domain: str = 'xueqiu', lazy: bool = True):
     cj = requests.cookies.cookielib.LWPCookieJar(api.cookie_file)
-    cookies = [i for i in browsercookie.load() if i.domain.find("xueqiu")>0]
+    # load cookies from browser
+    [cj.set_cookie(ck) for ck in get_cookies_by_domain(domain, lazy)]
     # load cookies from file
     if os.path.exists(api.cookie_file):
         cj.load(ignore_discard=True, ignore_expires=True)
-    # load cookies from browser
-    elif len(cookies) > 5:
-        [cj.set_cookie(ck) for ck in cookies]
     # load cookies from selenium
     else:
         opts = webdriver.ChromeOptions()
@@ -109,6 +116,8 @@ def js2obj(jscode: str, objname: str):
     return json.loads(stdout)
 
 def str2date(s: str):
+    if s[0] != '-' and s != 'cyear':
+        return arrow.get(s)
     date = lambda **kw: arrow.now().replace(**kw)
     n, k = s[:-1], s[-1]
     bg = {'d':['days',n],
