@@ -30,6 +30,7 @@ PROVINCE_CODE = {
     '台湾':931, '西藏':932, '香港':933, '澳门':934, '全国':0}
 
 CITY_CODE = {
+    '重庆市':'11', '上海市':'57', '北京市':'514', '天津市':'164', '香港区':'663', '澳门区':'664',
     #山东
     '济南': '1', '滨州': '76', '青岛': '77', '烟台': '78', '临沂': '79', '潍坊': '80',
     '淄博': '81', '东营': '82', '聊城': '83', '菏泽': '84', '枣庄': '85', '德州': '86',
@@ -143,7 +144,10 @@ class BaiduIndex:
 
     >>> idx = BaiduIndex()
     >>> idx.search('股票',begin='-3m',area='上海')
+    >>> idx.region_distribution('股票','-6w')  # 地域分布
+    >>> idx.social_attribute('股票','-15d')  # 人群属性
     """
+    cookie = None
 
     def __init__(self, keyword='', begin='-1m', end=arrow.now(), index='search', area='全国', cookie=''):
         self._keywords = keyword.find(',')>0 and keyword.split(',') or [keyword]
@@ -151,12 +155,12 @@ class BaiduIndex:
         self.end_date = arrow.get(arrow.get(end).date())
         self.index_type = index
         self.area = area
-        self.cookie = cookie
+        self.cookie = cookie or BaiduIndex.cookie
         self._key = None
         self._uniqid = None
-        self.result = {kw: [] for kw in self._keywords}
+        self._result = {kw: [] for kw in self._keywords}
 
-    def search(self, keyword, begin='-1m', end=arrow.now(), index='search', area='全国', cookie=''):
+    def search(self, keyword, *args, **kwargs):
         """Get keyword related baidu index data.
 
         :param keyword: baidu index for keyword.
@@ -169,16 +173,41 @@ class BaiduIndex:
         :param cookie: (optional) your cookie strings.
         :return: pd.DataFrame
         """
-        self.__init__(keyword, begin, end, index, area, cookie)
+        self.__init__(keyword, *args, **kwargs)
         for st,ed in self.get_date_range(self.start_date, self.end_date):
             for d in self.get_encrypt_data(st, ed):
                 encdata = d.get('all') or d
                 self.end_date = arrow.get(encdata['endDate'])
-                self.result[d.get('word') or d.get('key')] += \
+                self._result[d.get('word') or d.get('key')] += \
                     self.decrypt(self.get_key(), encdata['data'])
         date_range = arrow.Arrow.range('day', self.start_date, self.end_date)
-        self.result['date'] = pd.to_datetime([i.date() for i in date_range])
-        return pd.DataFrame(self.result).set_index('date')
+        self._result['date'] = pd.to_datetime([i.date() for i in date_range])
+        self.result = pd.DataFrame(self._result).set_index('date')
+        return self.result
+
+    def region_distribution(self, keyword, *args, **kwargs):
+        """region distribution statistics. 地域分布"""
+        self.__init__(keyword, *args, **kwargs)
+        params = {'region': AREAS[self.area],
+                  'word': ','.join(self._keywords),
+                  'startDate': self.start_date.format('YYYY-MM-DD'),
+                  'endDate': self.end_date.format('YYYY-MM-DD')}
+        cookie = self.cookie and {'Cookie': self.cookie} or {}
+        resp = sess.get(api.baidu_region, params=params, headers=cookie).json()
+        self.region = {i['key']: {'city':i['city'], 'prov':i['prov'], 'period':i['period']}
+            for i in resp['data']['region']}
+        return self.region
+
+    def social_attribute(self, keyword, *args, **kwargs):
+        """social attribute statistics. 人群属性(年龄分布, 性别分布)"""
+        self.__init__(keyword, *args, **kwargs)
+        params = {'wordlist': ','.join(self._keywords),
+                  'startdate': self.start_date.format('YYYYMMDD'),
+                  'enddate': self.end_date.format('YYYYMMDD')}
+        cookie = self.cookie and {'Cookie': self.cookie} or {}
+        resp = sess.get(api.baidu_social, params=params, headers=cookie).json()
+        self.social = {i['word']: {'age':i['str_age'], 'sex':i['str_sex']} for i in resp['data']}
+        return self.social
 
     def get_encrypt_data(self, start_date, end_date):
         """get encrypted data."""

@@ -141,3 +141,5 @@ baidu_search_index = "http://index.baidu.com/api/SearchApi/index"  # 搜索指�
 baidu_feed_index = "http://index.baidu.com/api/FeedSearchApi/getFeedIndex"  # 资讯指数
 baidu_news_index = "http://index.baidu.com/api/NewsApi/getNewsIndex"  # 媒体指数
 baidu_data_key = "http://index.baidu.com/Interface/api/ptbk"
+baidu_region = "http://index.baidu.com/api/SearchApi/region"  # 地域分布
+baidu_social = "http://index.baidu.com/api/SocialApi/getSocial"  # 社会属性
