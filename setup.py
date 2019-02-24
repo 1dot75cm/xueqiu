@@ -15,7 +15,6 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 import sys
 import re
-import xueqiu
 
 
 class PyTest(TestCommand):
@@ -35,14 +34,18 @@ def gendeps(filename):
         return re.split("\n", f.read())
 
 
+with open('xueqiu/__init__.py', 'rt', encoding='utf8') as f:
+    xueqiu = dict(re.findall(r'__(.*?)__ = "(.*?)"', f.read()))
+
+
 setup(
-    name=xueqiu.__pkgname__,
-    version=xueqiu.__version__,
-    license=xueqiu.__license__,
-    url=xueqiu.__url__,
-    author=xueqiu.__author__,
-    author_email=xueqiu.__email__,
-    description=xueqiu.__descript__,
+    name=xueqiu['pkgname'],
+    version=xueqiu['version'],
+    license=xueqiu['license'],
+    url=xueqiu['url'],
+    author=xueqiu['author'],
+    author_email=xueqiu['email'],
+    description=xueqiu['descript'],
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     packages=find_packages(exclude=['tests']),

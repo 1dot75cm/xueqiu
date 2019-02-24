@@ -10,6 +10,7 @@ This module implements a humanize XueQiu API wrappers.
 :license: MIT, see LICENSE for more details.
 """
 
+# xueqiu api
 from .model import news
 from .model import search
 from .model import Selector
@@ -24,11 +25,19 @@ from .model import get_all_funds_ranking
 # economic api
 from .model import get_economic
 from .model import get_economic_of_china
+# others
+from .model import get_data_yahoo
+from .model import get_quote_yahoo
+from .model import get_stock_margin
+from .model import get_hsgt_history
+from .model import get_hsgt_top10
+from .model import get_hsgt_holding
+# baidu search index
 from .baidu import BaiduIndex
 
 
 __pkgname__ = "xueqiu"
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __license__ = "MIT"
 __url__ = "https://github.com/1dot75cm/xueqiu"
 __descript__ = "A humanize XueQiu API wrappers."

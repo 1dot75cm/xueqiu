@@ -4,6 +4,6 @@ lxml>=4.3.0
 requests>=2.21.0
 requests-cache>=0.4.13
 selenium>=3.141.0
-browsercookie>=0.7.5
+browsercookie @ git+https://github.com/1dot75cm/browsercookie@master
 pandas>=0.23.4
 pandas-datareader>=0.7.0

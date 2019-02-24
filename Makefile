@@ -7,7 +7,7 @@ test:
 
 build:
 	@echo "Build source and binary package..."
-	@python setup.py sdist bdist_wheel
+	@python setup.py -q sdist bdist_wheel
 
 upload: build
 	@echo "Upload package to PyPI..."

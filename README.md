@@ -7,6 +7,8 @@ Installation
 
 ```sh
 pip install xueqiu
+OR
+pip install git+https://github.com/1dot75cm/xueqiu@master
 ```
 
 Example:
@@ -740,6 +742,7 @@ HDDATE        代码     名称    持股市值      持股数量   持股占A�
 2019-02-20  601318  中国平安  4.991939e+10  757732051     6.80
 2019-02-19  601318  中国平安  4.943077e+10  752600092     6.72
 ...
+```
 
 ### BaiduIndex class
 
