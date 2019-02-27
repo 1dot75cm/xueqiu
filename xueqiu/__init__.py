@@ -37,7 +37,7 @@ from .baidu import BaiduIndex
 
 
 __pkgname__ = "xueqiu"
-__version__ = "0.1.3"
+__version__ = "0.1.3.1"
 __license__ = "MIT"
 __url__ = "https://github.com/1dot75cm/xueqiu"
 __descript__ = "A humanize XueQiu API wrappers."

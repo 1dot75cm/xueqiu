@@ -6,8 +6,8 @@ test:
 	tox
 
 build:
-	@echo "Build source and binary package..."
-	@python setup.py -q sdist bdist_wheel
+	@echo "Build source package..."
+	@python setup.py -q sdist
 
 upload: build
 	@echo "Upload package to PyPI..."

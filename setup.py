@@ -13,6 +13,8 @@ This module implements a humanize XueQiu API wrappers.
 
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
+from setuptools.command.install import install
+from subprocess import getoutput
 import sys
 import re
 
@@ -27,6 +29,14 @@ class PyTest(TestCommand):
         import pytest
         err_code = pytest.main(self.test_args)
         sys.exit(err_code)
+
+
+class PostInstall(install):
+    """run post install."""
+    pkgs = ' git+https://github.com/1dot75cm/browsercookie@master'
+    def run(self):
+        install.run(self)
+        print(getoutput('pip install'+self.pkgs))
 
 
 def gendeps(filename):
@@ -55,7 +65,7 @@ setup(
     install_requires=gendeps('requirements.txt'),
     tests_require=gendeps('requirements-test.txt'),
     test_suite="tests",
-    cmdclass={'test': PyTest},
+    cmdclass={'install': PostInstall, 'test': PyTest},
     keywords=['xueqiu', 'snowball', 'stock', 'api', 'api client', 'wrappers'],
     # https://pypi.org/classifiers/
     classifiers=[
