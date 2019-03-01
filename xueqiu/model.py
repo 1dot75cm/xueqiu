@@ -1097,7 +1097,7 @@ class Stock:
                'balance': [api.balance, sheet.balance_lang],
                'cash_flow': [api.cash_flow, sheet.cash_flow_lang],
                'indicator': [api.indicator, sheet.indicator_lang]}
-        reg = {'SH':'cn', 'SZ':'cn', 'HK':'hk', 'NYSE':'us'}
+        reg = {'SH':'cn', 'SZ':'cn', 'HK':'hk', 'NYSE':'us', 'NASDAQ':'us'}
         region = reg[self.exchange]
         resp = sess.get(sht[sheet_type][0] % (region, self.symbol, quarter, count))
         dt = json.loads(resp.text.replace('一季报','Q1').replace('中报','Q2').replace('三季报','Q3').replace('年报','Q4'))
@@ -1116,7 +1116,7 @@ class Stock:
         :param lang: (optional) sheet language, default is `cn`.
         """
         if quarter == 'last' or self.exchange == 'HK':
-            reg = {'SH':'cn', 'SZ':'cn', 'HK':'hk', 'NYSE':'us'}
+            reg = {'SH':'cn', 'SZ':'cn', 'HK':'hk', 'NYSE':'us', 'NASDAQ':'us'}
             region = reg[self.exchange]
             columns = sheet.f10_indicator_ks['base'].copy()
             columns.update(sheet.f10_indicator_ks[region])
@@ -1154,6 +1154,50 @@ class Stock:
         :param lang: (optional) sheet language, default is `cn`.
         """
         return self._get_sheet('cash_flow', quarter.upper(), count)
+
+    @staticmethod
+    def maxdrawdown(arr):
+        """maximum drawdown. 最大回撤"""
+        ed = arr.idxmin(arr/arr.expanding().max())  # end of period
+        st = arr.idxmax(arr[:ed])  # start of period
+        return round(arr[ed]/arr[st]-1,6), st, ed
+
+    @staticmethod
+    def sharpe_ratio(arr, base_rate=0.025):
+        """sharpe ratio. 夏普比率"""
+        risk_free_return = np.log(1 + base_rate) / 252
+        daily_return = np.log(arr) - np.log(arr.shift(1)) - risk_free_return
+        sharpe = daily_return.mean() / daily_return.std()
+        return round(sharpe * np.sqrt(252), 4)
+
+    @staticmethod
+    def info_ratio(stock, index):
+        """information ratio. 信息比率"""
+        diff = stock.pct_change() - index.pct_change()
+        diff_rtn = diff.mean() * 252
+        diff_std = diff.std() * np.sqrt(252)
+        return round(diff_rtn / diff_std, 4)
+
+    @staticmethod
+    def annual_return(arr, return_type='simple'):
+        """annual return. 年化收益率"""
+        ret = {'simple': (arr.iloc[-1]/arr.iloc[0])**(252/len(arr))-1,
+               'log': (np.log(arr.iloc[-1])-np.log(arr.iloc[0]))*(252/len(arr))}
+        return round(ret.get(return_type), 6)
+
+    @staticmethod
+    def beta(stock, index):
+        """beta"""
+        stk_rtn = stock.pct_change()
+        idx_rtn = index.pct_change()
+        return round(stk_rtn.cov(idx_rtn)/idx_rtn.var(), 4)
+
+    @classmethod
+    def alpha(cls, stock, index, base_rate=0.025):
+        """alpha"""
+        alpha_stk = cls.annual_return(stock) - base_rate
+        alpha_idx = cls.annual_return(index) - base_rate
+        return round(alpha_stk-alpha_idx*cls.beta(stock,index), 4)
 
 
 class Fund(Stock):

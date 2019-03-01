@@ -76,14 +76,17 @@ def clean_html(tree: str):
 def check_symbol(code: str, source: str = 'xueqiu'):
     # xueqiu: 美股 FB BABA, 港股 00700 HKHSI, A股 SH601318 SZ000333
     # yahoo: 美股 FB BABA, 港股 0700.HK ^HSI, A股 601318.SS 000333.SZ
+    prefix = code[:2].lower()
     match = re.search(r'\d+', str(code))
     code = match and match[0] or str(code)
     sym = {'xueqiu': {'sz':'SZ'+code,  'sh':'SH'+code,  'hk':code},
            'yahoo':  {'sz':code+'.SZ', 'sh':code+'.SS', 'hk':code[1:]+'.HK'}}
-    if len(code) > 5:
-        if code[:2] in ["30", "39", "00"]:
+    if prefix in ['sh','sz']:
+        return sym[source].get(prefix)
+    elif len(code) > 5:
+        if prefix in ["30", "39", "00"]:
             return sym[source]['sz']
-        elif code[:2] in ["60", "50", "51"]:
+        elif prefix in ["60", "50", "51"]:
             return sym[source]['sh']
     elif len(code) == 5:
         return sym[source]['hk']
