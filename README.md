@@ -639,6 +639,24 @@ Example:
 ......
 ```
 
+### get_data_invest function
+
+Example:
+```python
+>>> get_data_invest(query='BABA')
+[['941155', '阿里巴巴', 'BABA', '纽约'],
+ ['940993', 'Baba Farid Sugar Mills Ltd', 'BABA', '巴基斯坦卡拉奇'],
+ ['986306', '阿里巴巴', 'BABAUSD', '瑞士'],
+ ['987353', 'Baba Arts Ltd', 'BART', '孟买BSE'],
+>>> get_data_invest('941155', '-1y').head()
+date        close    open    high     low         vol
+2018-03-05  181.60  179.41  181.95  177.07  15656661.0
+2018-03-06  187.37  185.19  188.01  184.82  17856088.0
+2018-03-07  189.05  184.37  189.07  184.32  13728910.0
+2018-03-08  187.18  189.05  190.23  186.57  14331400.0
+2018-03-09  190.55  189.64  190.70  188.01  14208356.0
+```
+
 ### get_data_yahoo function
 
 Example:

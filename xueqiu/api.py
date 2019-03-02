@@ -128,10 +128,13 @@ x_fund_stocks = r"\w{2,6}.html.*?(\w{2,6}).html.>(\w.+?)<.*?>(\d{1,2}.\d{2})%"
 x_fund_nav = "//td/text()"
 x_fund_history = r"(\d{4}-\d{2}-\d{2}).*?(\d+.\d+).*?(\d+.\d+).*?(-?\d+.\d{2})%"
 x_exrate = r"\d{1,3}.\d{2,5}"
+x_invest_history = ['//tr/th/@data-col-name','//table[1]/tbody/tr','td/@data-real-value']
 
 # economy
-economic = "https://sbcharts.investing.com/events_charts/us/%s.json"  # 宏观经济数据
-economic_search = invest + "/search/service/SearchInnerPage"
+invest_search = invest + "/search/service/SearchInnerPage"  # 搜索
+invest_history = invest + "/instruments/HistoricalDataAjax"  # 历史数据
+invest_data = invest + "/common/modules/js_instrument_chart/api/data.php"  # 行情数据
+invest_economic = "https://sbcharts.investing.com/events_charts/us/%s.json"  # 宏观经济数据
 china_stats = "http://data.stats.gov.cn/easyquery.htm"  # 国家统计局数据
 china_stats_adv = "http://data.stats.gov.cn/adv.htm"
 

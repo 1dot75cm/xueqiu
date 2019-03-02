@@ -26,6 +26,7 @@ from .fund import get_all_funds_ranking
 from .economic import get_economic
 from .economic import get_economic_of_china
 # others
+from .stock import get_data_invest
 from .stock import get_data_yahoo
 from .stock import get_quote_yahoo
 from .stock import get_stock_margin

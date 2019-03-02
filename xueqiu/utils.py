@@ -132,6 +132,17 @@ def str2date(s: str):
     if s == 'cyear': return date(**bg['c'])
     return date(**{bg[k][0]: int(bg[k][1])})
 
+def search_invest(query, query_type='quotes'):
+    # quotes行情 news新闻 articles分析 ec_event财经日历
+    header = {'Origin':api.invest, 'Referer':api.invest}
+    form_data = {'search_text':query,'tab':query_type,'offset':0,'limit':270}
+    resp = sess.post(api.invest_search, data=form_data, headers=header).json()
+    ks = {'quotes': ['pairId','name','symbol','exchange'],
+          'news': ['dataID','name','link'],
+          'articles': ['dataID','name','link'],
+          'ec_event': ['dataID','name']}
+    return [[str(i[k]) for k in ks[query_type]] for i in resp.get(query_type)]
+
 
 exusd = functools.partial(exrate, code="USD")
 exhkd = functools.partial(exrate, code="HKD")

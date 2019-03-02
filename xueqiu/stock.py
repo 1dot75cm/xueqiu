@@ -10,13 +10,15 @@ This module implements some stock methods.
 :license: MIT, see LICENSE for more details.
 """
 
-__all__ = ['get_data_yahoo', 'get_quote_yahoo', 'get_stock_margin',
+__all__ = ['get_data_yahoo', 'get_data_invest', 'get_quote_yahoo', 'get_stock_margin',
            'get_hsgt_history', 'get_hsgt_top10', 'get_hsgt_holding']
 
 from .utils import check_symbol
 from .utils import sess
 from .utils import str2date
+from .utils import search_invest
 from . import api
+from lxml import html
 import pandas_datareader.data as web
 import pandas as pd
 import arrow
@@ -44,6 +46,26 @@ def get_quote_yahoo(symbol: str, session = sess, **kwargs):
     """get stock summary from yahoo.com."""
     symbol = check_symbol(symbol,'yahoo')
     return web.get_quote_yahoo(symbol, session=session, **kwargs)
+
+
+def get_data_invest(symbol: str = '', start: str = '-1y', end: str = arrow.now(),
+                    period: str = 'day', query: str = ''):
+    """get stock data from investing.com."""
+    header = {'Origin':api.invest, 'Referer':api.invest}
+    begin = str2date(start).format('YYYY/MM/DD')
+    end = arrow.get(end).format('YYYY/MM/DD')
+    intl = {'day':'Daily', 'week':'Weekly', 'month':'Monthly'}
+    if query: return search_invest(query)
+    elif symbol:
+        form_data = {'action':'historical_data', 'curr_id':symbol,
+            'st_date':begin, 'end_date':end, 'interval_sec':intl[period]}
+        resp = sess.post(api.invest_history, data=form_data, headers=header)
+        tree = html.fromstring(resp.text)
+        cols = tree.xpath(api.x_invest_history[0])[:-1]
+        data = [i.xpath(api.x_invest_history[2]) for i in tree.xpath(api.x_invest_history[1])]
+        df = pd.DataFrame(data, columns=cols, dtype=float).set_index('date').sort_index()
+        df.index = pd.to_datetime(df.index, unit='s')
+        return df.rename(columns={'price':'close'})
 
 
 def get_stock_margin(code: str = '', begin: str = '-3m', page: int = 1, mkt_type: str = 'all'):
