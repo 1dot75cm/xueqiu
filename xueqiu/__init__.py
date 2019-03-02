@@ -20,18 +20,18 @@ from .model import Post
 from .model import Comment
 from .model import User
 # funds api
-from .model import get_all_funds
-from .model import get_all_funds_ranking
+from .fund import get_all_funds
+from .fund import get_all_funds_ranking
 # economic api
-from .model import get_economic
-from .model import get_economic_of_china
+from .economic import get_economic
+from .economic import get_economic_of_china
 # others
-from .model import get_data_yahoo
-from .model import get_quote_yahoo
-from .model import get_stock_margin
-from .model import get_hsgt_history
-from .model import get_hsgt_top10
-from .model import get_hsgt_holding
+from .stock import get_data_yahoo
+from .stock import get_quote_yahoo
+from .stock import get_stock_margin
+from .stock import get_hsgt_history
+from .stock import get_hsgt_top10
+from .stock import get_hsgt_holding
 # baidu search index
 from .baidu import BaiduIndex
 
@@ -45,7 +45,7 @@ __author__ = "1dot75cm"
 __email__ = "sensor.wen@gmail.com"
 
 
-def main():
+def about():
     me = f"""{__pkgname__} {__version__} - {__descript__}
 
 :copyright: (c) 2019 by {__author__}.
@@ -54,4 +54,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    about()
