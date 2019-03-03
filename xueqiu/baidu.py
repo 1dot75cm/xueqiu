@@ -137,7 +137,25 @@ sess.cookies = requests.cookies.merge_cookies(sess.cookies,
     get_cookies('.baidu.com', lazy=False))
 
 
-class BaiduIndex:
+class BaseIndex:
+    """base index class."""
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def get_date_range(start, end, period='year'):
+        """date range is one year."""
+        start = arrow.get(start)
+        end = arrow.get(end)
+        for i in arrow.Arrow.range(period, start, end):
+            dt = {'year':i.shift(years=1), 'quarter':i.shift(quarters=1),
+                  'month':i.shift(months=1), 'week':i.shift(weeks=1)}
+            if i == end: break
+            tmp = dt[period]>=end and end or dt[period].shift(days=-1)
+            yield (i, tmp)
+
+
+class BaiduIndex(BaseIndex):
     """Baidu search/feed/news index.
 
     Usage::
@@ -233,22 +251,108 @@ class BaiduIndex:
         return self._key
 
     @staticmethod
-    def get_date_range(start, end):
-        """date range is one year."""
-        start = arrow.get(start)
-        end = arrow.get(end)
-        if start.shift(years=1) > end:
-            return [(start, end)]
-        date_range = []
-        for i in arrow.Arrow.range('year', start, end):
-            if i == end: break
-            tmp = end if i.shift(years=1)>=end else i.shift(years=1,days=-1)
-            date_range.append((i, tmp))
-        return date_range
-
-    @staticmethod
     def decrypt(key, data):
         """decrypt data."""
         kv = {key[i]: key[len(key)//2+i] for i in range(len(key)//2)}
         dec = ''.join([kv[i] for i in data])
         return dec.split(',')
+
+
+class SogouIndex(BaseIndex):
+    """Sogou search index.
+
+    Usage::
+
+    >>> idx = SogouIndex()
+    >>> idx.search('股票',begin='-3m')
+    """
+    head = {'Origin': 'http://zhishu.sogou.com',
+            'Referer':'http://zhishu.sogou.com'}
+    dkey = {'all':    'SEARCH_ALL',
+            'pc':     'SEARCH_PC',
+            'mobile': 'SEARCH_WAP',
+            'wechat': 'MEDIA_WECHAT'}
+
+    def __init__(self, keyword='', begin='-1m', end=arrow.now(), data_type='all'):
+        self._keywords = keyword.find(',')>0 and keyword.split(',') or [keyword]
+        self.start_date = arrow.get(str2date(begin).date())  # arrow.range includes the end date
+        self.end_date = arrow.get(arrow.get(end).date())
+        self.data_type = data_type
+        self._result = {kw: [] for kw in self._keywords}
+
+    def search(self, keyword, *args, **kwargs):
+        """Get keyword related sogou index data.
+
+        :param keyword: sogou index for keyword.
+        :param begin: (optional) start date, default is `-1m`.
+        :param end: (optional) end date, default is `now`.
+        :param data_type: (optional) data type, default is `all`.
+            value: all, pc, mobile, wechat
+        :return: pd.DataFrame
+        """
+        self.__init__(keyword, *args, **kwargs)
+        for st,ed in self.get_date_range(self.start_date, self.end_date):
+            for k,d in zip(self._keywords, self.get_data(st, ed)):
+                self._result[k] += [i['pv'] for i in d]
+        date_range = arrow.Arrow.range('day', self.start_date, self.end_date)
+        self._result['date'] = pd.to_datetime([i.date() for i in date_range])
+        self.result = pd.DataFrame(self._result).set_index('date')
+        return self.result
+
+    def get_data(self, start_date, end_date):
+        """get data."""
+        params = {
+            'kwdNamesStr': ','.join(self._keywords),
+            'startDate': start_date.format('YYYYMMDD'),
+            'endDate': end_date.format('YYYYMMDD'),
+            'dataType': self.dkey[self.data_type],
+            'queryType': 'INPUT'
+        }
+        resp = sess.get(api.sogou_search_index, params=params, headers=self.head)
+        data = resp.json()['data']['pvList']
+        return data
+
+
+class ToutiaoIndex(BaseIndex):
+    """Toutiao search index.
+
+    Usage::
+
+    >>> idx = ToutiaoIndex()
+    >>> idx.search('股票',begin='-3m')
+    """
+    head = {'Origin': 'https://index.toutiao.com',
+            'Referer':'https://index.toutiao.com'}
+
+    def __init__(self, keyword='', begin='-1m', end=arrow.now()):
+        self._keywords = keyword.find(',')>0 and keyword.split(',') or [keyword]
+        self.start_date = arrow.get(str2date(begin).date())  # arrow.range includes the end date
+        self.end_date = arrow.get(arrow.get(end).date())
+        self._result = {kw: [] for kw in self._keywords}
+
+    def search(self, keyword, *args, **kwargs):
+        """Get keyword related toutiao index data.
+
+        :param keyword: toutiao index for keyword.
+        :param begin: (optional) start date, default is `-1m`.
+        :param end: (optional) end date, default is `now`.
+        :return: pd.DataFrame
+        """
+        self.__init__(keyword, *args, **kwargs)
+        for st,ed in self.get_date_range(self.start_date, self.end_date, 'month'):
+            for k,d in zip(self._keywords, self.get_data(st, ed)):
+                self._result[k] += d
+        date_range = arrow.Arrow.range('day', self.start_date, self.end_date)
+        self._result['date'] = pd.to_datetime([i.date() for i in date_range])
+        self.result = pd.DataFrame(self._result).set_index('date')
+        return self.result.applymap(lambda x: int(x))
+
+    def get_data(self, start_date, end_date):
+        """get data."""
+        for i in self._keywords:
+            params = {'region': 0, 'category': 0,
+                      'is_hourly': 0, 'keyword': i,
+                      'start': start_date.format('YYYYMMDD'),
+                      'end': end_date.format('YYYYMMDD')}
+            resp = sess.get(api.toutiao_search_index, params=params, headers=self.head)
+            yield resp.json()['trends'][i]

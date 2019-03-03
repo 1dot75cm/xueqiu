@@ -146,3 +146,5 @@ baidu_news_index = "http://index.baidu.com/api/NewsApi/getNewsIndex"  # 媒体�
 baidu_data_key = "http://index.baidu.com/Interface/api/ptbk"
 baidu_region = "http://index.baidu.com/api/SearchApi/region"  # 地域分布
 baidu_social = "http://index.baidu.com/api/SocialApi/getSocial"  # 社会属性
+sogou_search_index = "http://zhishu.sogou.com/getDateData"  # 搜索指数
+toutiao_search_index = "https://index.toutiao.com/api/keyword/trends"  # 搜索指数

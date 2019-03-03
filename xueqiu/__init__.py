@@ -35,6 +35,8 @@ from .stock import get_hsgt_top10
 from .stock import get_hsgt_holding
 # baidu search index
 from .baidu import BaiduIndex
+from .baidu import SogouIndex
+from .baidu import ToutiaoIndex
 
 
 __pkgname__ = "xueqiu"
