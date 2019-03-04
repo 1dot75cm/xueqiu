@@ -148,3 +148,6 @@ baidu_region = "http://index.baidu.com/api/SearchApi/region"  # 地域分布
 baidu_social = "http://index.baidu.com/api/SocialApi/getSocial"  # 社会属性
 sogou_search_index = "http://zhishu.sogou.com/getDateData"  # 搜索指数
 toutiao_search_index = "https://index.toutiao.com/api/keyword/trends"  # 搜索指数
+movie_search = "https://piaofang.maoyan.com/search?key=%s"
+movie_history = "https://piaofang.maoyan.com/movie/%s/boxshow"  # 猫眼历史票房
+movie_live = "https://box.maoyan.com/promovie/api/box/second.json"  # 猫眼实时票房

@@ -37,6 +37,10 @@ from .stock import get_hsgt_holding
 from .baidu import BaiduIndex
 from .baidu import SogouIndex
 from .baidu import ToutiaoIndex
+# maoyan movie api
+from .movie import get_movie_id
+from .movie import get_movie_boxinfo_byid
+from .movie import get_movie_boxinfo_live
 
 
 __pkgname__ = "xueqiu"
