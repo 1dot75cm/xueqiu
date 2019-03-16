@@ -20,6 +20,7 @@ from .utils import search_invest
 from . import api
 from lxml import html
 import pandas_datareader.data as web
+import pandas_market_calendars as mcal
 import pandas as pd
 import arrow
 
@@ -132,3 +133,22 @@ def get_hsgt_holding(code: str = '', mkt_type: str = 'north', date: str = arrow.
             .drop(columns=['HKCODE','MARKET','Zb','Zzb'])
     df.index = pd.to_datetime(df.index)
     return df.rename(columns=sheet.hsgt_hold)
+
+
+def get_trade_days(start_date: str = '-1y', end_date: str = arrow.now(),
+                   market: str = 'SSE', frequency: str = '1d'):
+    """get trade days for data cleaning. 交易日列表,用于数据清洗
+
+    :param start_date: (optional) start date of the custom return, default is `-1y`.
+        value: -nd -nw -nm -ny cyear or YYYY-MM-DD
+    :param end_date: (optional) the end date of the results, default is `now`.
+    :param market: (optional) market name, default is `SSE`.
+        value: NYSE NASDAQ SSE HKEX
+    :param frequency: (optional) frequency of date, default is `1d`.
+    :return: pd.DatetimeIndex
+    """
+    begin = str2date(start_date).format('YYYY-MM-DD')
+    end = arrow.get(end_date).format('YYYY-MM-DD')
+    mkt = mcal.get_calendar(market)
+    calendar = mkt.schedule(begin, end)
+    return mcal.date_range(calendar, frequency)
