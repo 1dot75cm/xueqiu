@@ -805,7 +805,8 @@ class Stock:
         }
 
     def get_histories(self, begin: str = '-1m', end: str = arrow.now(),
-                      period: str = 'day', indicator: str = 'kline,ma,pe,pb,ps,pcf,market_capital'):
+                      period: str = 'day', adjust: str = 'before',
+                      indicator: str = 'kline,ma,pe,pb,ps,pcf,market_capital'):
         """get stock history data.
 
         :param begin: the start date of the results.
@@ -813,13 +814,15 @@ class Stock:
         :param end: (optional) the end date of the results, default is `now`.
         :param period: (optional) set date period, default is `day`.
                 value: day week month quarter year 120m 60m 30m 15m 5m 1m
+        :param adjust: (optional) stock price adjustment, default is `before`.
+                value: before after normal
         :param indicator: (optional) set stock indicator, default is `kline,ma,pe,pb,ps,pcf,market_capital`.
                 value: kline,ma,macd,kdj,boll,rsi,wr,bias,cci,psy,pe,pb,ps,pcf,market_capital
         """
         begin = len(begin)>5 and arrow.get(begin,tzinfo="Asia/Shanghai").timestamp \
                              or  self._str2date(begin).timestamp
         end = arrow.get(end).timestamp
-        resp = sess.get(api.stock_history % (self.symbol, begin, end, period, indicator))
+        resp = sess.get(api.stock_history % (self.symbol, begin, end, period, adjust, indicator))
         dt = resp.ok and resp.json()
         df = pd.DataFrame(
             [[arrow.get(i[0]/1000).to('UTF-8').date()]+i[1:]
