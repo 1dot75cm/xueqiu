@@ -4,3 +4,4 @@ include README.md
 include requirements*.txt
 include tests/*
 include tox.ini
+include xueqiu/index.dat

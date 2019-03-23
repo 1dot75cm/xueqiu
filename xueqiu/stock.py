@@ -19,10 +19,13 @@ from .utils import str2date
 from .utils import search_invest
 from . import api
 from lxml import html
+from io import StringIO
 import pandas_datareader.data as web
 import pandas_market_calendars as mcal
 import pandas as pd
 import arrow
+import gzip
+import re
 
 
 def get_data_yahoo(symbol: str, start: str = '-1y', end: str = None,
@@ -152,3 +155,12 @@ def get_trade_days(start_date: str = '-1y', end_date: str = arrow.now(),
     mkt = mcal.get_calendar(market)
     calendar = mkt.schedule(begin, end)
     return mcal.date_range(calendar, frequency)
+
+
+def load_index_data(code: str = None):
+    """load index data from index.dat file."""
+    with gzip.open(api.index_file, 'rt') as f:
+        data = re.findall(api.x_index_data, f.read(), re.S)
+    dfs = {k: pd.read_csv(StringIO(v), index_col='date',
+                parse_dates=True) for k,v in data}
+    return dfs.get(code) if code else dfs

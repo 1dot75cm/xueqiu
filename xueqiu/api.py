@@ -12,6 +12,7 @@ This module contains some XueQiu API strings.
 
 import os
 import platform
+import xueqiu
 
 # prefix
 prefix = "https://xueqiu.com"
@@ -24,6 +25,7 @@ homedir = os.getenv('TESTDIR') or os.getenv('HOME') or os.getenv('LOCALAPPDATA')
 cookie_file = platform.system() == "Linux" and \
     os.path.join(homedir, ".xueqiu", "cookie") or \
     os.path.join(homedir or "", "xueqiu", "cookie")  # linux or windows
+index_file = os.path.join(xueqiu.__path__[0], "index.dat")
 
 # stock
 stock_quote = prefix2 + "/v5/stock/quote.json?symbol=%s&extend=detail"  # 基本信息
@@ -129,6 +131,7 @@ x_fund_nav = "//td/text()"
 x_fund_history = r"(\d{4}-\d{2}-\d{2}).*?(\d+.\d+).*?(\d+.\d+).*?(-?\d+.\d{2})%"
 x_exrate = r"\d{1,3}.\d{2,5}"
 x_invest_history = ['//tr/th/@data-col-name','//table[1]/tbody/tr','td/@data-real-value']
+x_index_data = r"data/(.*?).csv.*?(date.*?)\x00"
 
 # economy
 invest_search = invest + "/search/service/SearchInnerPage"  # 搜索

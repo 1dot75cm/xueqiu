@@ -6,6 +6,8 @@ test:
 	tox
 
 build:
+	@echo "Compress index data..."
+	@tar zcf xueqiu/index.dat xueqiu/data/*.csv
 	@echo "Build source package..."
 	@python setup.py -q sdist
 
