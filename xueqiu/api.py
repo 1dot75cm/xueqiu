@@ -46,6 +46,7 @@ pro_users = prefix + "/recommend/user/stock_hot_user.json?symbol=%s&start=0&coun
 # type 全球10 沪深12 港股13 美股11
 user_stocks = prefix2 + "/v5/stock/portfolio/stock/list.json?uid=%s&pid=-%s&category=1&size=%s" # 用户关注
 # pid 全球1, 沪深5, 港股7, 美股6
+stock_history_ntes = "http://quotes.money.163.com/service/chddata.html"  # 网易历史数据
 
 # stock sheet
 #api.xueqiu.com/stock/f10/balsheet.csv?symbol=SH601318&page=1&size=1000

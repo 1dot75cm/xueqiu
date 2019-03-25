@@ -828,6 +828,7 @@ class Stock:
             [[arrow.get(i[0]/1000).to('UTF-8').date()]+i[1:]
                 for i in dt['data']['item']],
             columns=['date']+dt['data']['column'][1:])
+        df.date = pd.to_datetime(df.date)
         self.history = df.set_index('date')
 
     def _get_sheet(self, sheet_type: str = 'cash_flow', quarter: str = 'all', count: int = 12, lang: str = 'cn'):

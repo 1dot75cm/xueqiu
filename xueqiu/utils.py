@@ -76,19 +76,23 @@ def clean_html(tree: str):
 def check_symbol(code: str, source: str = 'xueqiu'):
     # xueqiu: 美股 FB BABA, 港股 00700 HKHSI, A股 SH601318 SZ000333
     # yahoo: 美股 FB BABA, 港股 0700.HK ^HSI, A股 601318.SS 000333.SZ
-    prefix = code[:2].lower()
+    # 163: A股 0601318 1000333
+    prefix, suffix = code[:2].lower(), code[-2:].lower()
     match = re.search(r'\d+', str(code))
     code = match and match[0] or str(code)
-    sym = {'xueqiu': {'sz':'SZ'+code,  'sh':'SH'+code,  'hk':code},
-           'yahoo':  {'sz':code+'.SZ', 'sh':code+'.SS', 'hk':code[1:]+'.HK'}}
+    sym = {'xueqiu': {'sz':'SZ'+code,  'sh':'SH'+code,  'ss':'SH'+code,  'hk':code},
+           'yahoo':  {'sz':code+'.SZ', 'sh':code+'.SS', 'ss':code+'.SS', 'hk':code[1:]+'.HK'},
+           '163':    {'sz':'1'+code,   'sh':'0'+code,   'ss':'0'+code,   'hk':code}}
     if prefix in ['sh','sz']:
         return sym[source].get(prefix)
+    elif suffix in ['sh','ss','sz','hk']:
+        return sym[source].get(suffix)
     elif len(code) > 5:
         if prefix in ["30", "39", "00"]:
             return sym[source]['sz']
         elif prefix in ["60", "50", "51"]:
             return sym[source]['sh']
-    elif len(code) == 5:
+    elif len(code) == 5 and code[0] != '^':
         return sym[source]['hk']
     return code
 

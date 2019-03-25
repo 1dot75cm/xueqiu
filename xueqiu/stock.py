@@ -67,9 +67,24 @@ def get_data_invest(symbol: str = '', start: str = '-1y', end: str = arrow.now()
         tree = html.fromstring(resp.text)
         cols = tree.xpath(api.x_invest_history[0])[:-1]
         data = [i.xpath(api.x_invest_history[2]) for i in tree.xpath(api.x_invest_history[1])]
+        data = [map(lambda x:x.replace(',',''), i) for i in data]
         df = pd.DataFrame(data, columns=cols, dtype=float).set_index('date').sort_index()
         df.index = pd.to_datetime(df.index, unit='s')
         return df.rename(columns={'price':'close'})
+
+
+def get_data_netease(symbol: str, start: str = '-1y', end: str = arrow.now()):
+    """get stock data from 163.com."""
+    fields = 'TOPEN;HIGH;LOW;TCLOSE;VOTURNOVER;VATURNOVER'
+    cols = 'date,code,name,open,high,low,close,volume,amount'
+    begin = str2date(start).format('YYYYMMDD')
+    end = arrow.get(end).format('YYYYMMDD')
+    params = dict(code=check_symbol(symbol,'163'),
+                  start=begin, end=end, fields=fields)
+    resp = sess.get(api.stock_history_ntes, params=params)
+    df = pd.read_csv(StringIO(resp.text), header=0, names=cols.split(','),
+                     index_col='date', parse_dates=True)
+    return df.sort_index()
 
 
 def get_stock_margin(code: str = '', begin: str = '-3m', page: int = 1, mkt_type: str = 'all'):
