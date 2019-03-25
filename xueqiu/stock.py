@@ -17,9 +17,10 @@ from .utils import check_symbol
 from .utils import sess
 from .utils import str2date
 from .utils import search_invest
+from .sheet import spindices
 from . import api
 from lxml import html
-from io import StringIO
+from io import StringIO, BytesIO
 import pandas_datareader.data as web
 import pandas_market_calendars as mcal
 import pandas as pd
@@ -85,6 +86,23 @@ def get_data_netease(symbol: str, start: str = '-1y', end: str = arrow.now()):
     df = pd.read_csv(StringIO(resp.text), header=0, names=cols.split(','),
                      index_col='date', parse_dates=True)
     return df.sort_index()
+
+
+def get_data_spindices(symbol: str):
+    """get index data from spindices.com."""
+    cols = {4: 'date,total_return,net_total_return,price',
+            3: 'date,total_return,price',
+            2: 'date,price'}
+    params = {'hostIdentifier': '113d3fd3-ecaf-400f-9058-bbce16ec2390',
+              'selectedModule': 'PerformanceGraphView',
+              'selectedSubModule': 'Graph',
+              'yearFlag': 'tenYearFlag',
+              'indexId': spindices.get(symbol.lower())}
+    resp = sess.get(api.spindices_history, params=params)
+    df = pd.read_excel(BytesIO(resp.content), parse_dates=True,
+                       skiprows=6, skipfooter=4)
+    df.columns = cols[df.columns.size].split(',')
+    return df.set_index('date')
 
 
 def get_stock_margin(code: str = '', begin: str = '-3m', page: int = 1, mkt_type: str = 'all'):
