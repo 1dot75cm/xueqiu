@@ -105,6 +105,27 @@ def get_data_spindices(symbol: str):
     return df.set_index('date')
 
 
+def get_data_csindex(symbol: str, total_return: bool = False):
+    """get index data from csindex.com.cn."""
+    header = {'Origin':'', 'Referer':''}
+    col1 = 'date,code,fullcnname,cnname,fullname,name,open,high,low,close,'\
+           'change,percent,volume,amount,numofcons,pe1,pe2,div1,div2'
+    col2 = 'date,code,fullcnname,cnname,fullname,name,close,change,percent'
+    if total_return:
+        resp = sess.get(api.csindex_perf%symbol, headers=header)
+        df1 = pd.read_excel(BytesIO(resp.content), 0, names=col1.split(','), index_col='date', parse_dates=True)
+        df2 = pd.read_excel(BytesIO(resp.content), 1, names=col2.split(','), index_col='date', parse_dates=True)
+        df3 = pd.DataFrame({k:v.close.tolist() for k,v in df2.groupby('code')}, index=df1.index)
+        df = df1.merge(df3, left_index=True, right_index=True).sort_index()
+    else:
+        resp = sess.get(api.csindex_history%symbol, headers=header)
+        df = pd.DataFrame(resp.json())[['tradedate','tclose']]
+        df.columns = ['date','close']
+        df = df.set_index('date')
+        df.index = pd.to_datetime(df.index)
+    return df
+
+
 def get_stock_margin(code: str = '', begin: str = '-3m', page: int = 1, mkt_type: str = 'all'):
     """get stock margin. 融资融券"""
     begin = str2date(begin)
