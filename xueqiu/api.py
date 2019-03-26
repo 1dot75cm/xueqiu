@@ -50,6 +50,7 @@ stock_history_ntes = "http://quotes.money.163.com/service/chddata.html"  # 网�
 spindices_history = "https://chinese.spindices.com/idsexport/file.xls"  # S&P Indices
 csindex_history = "http://www.csindex.com.cn/zh-CN/indices/index-detail/%s?earnings_performance=5年&data_type=json"
 csindex_perf = "http://www.csindex.com.cn/uploads/file/autofile/perf/%sperf.xls"  # 指数行情
+sseindex_perf = "http://query.sse.com.cn/index/indexPerfDownloadExcel.do"  # 上证指数行情
 
 # stock sheet
 #api.xueqiu.com/stock/f10/balsheet.csv?symbol=SH601318&page=1&size=1000

@@ -126,6 +126,16 @@ def get_data_csindex(symbol: str, total_return: bool = False):
     return df
 
 
+def get_data_sseindex(symbol: str):
+    """get index data from sse.com.cn."""
+    header = {'Origin':'', 'Referer':'http://www.sse.com.cn/market/sseindex/quotation/'}
+    params = {'indexCode':symbol, 'codeType':'t'}
+    resp = sess.get(api.sseindex_perf, headers=header, params=params)
+    df = pd.read_excel(BytesIO(resp.content), names=['date','total_return'],
+                       index_col='date', parse_dates=True)
+    return df.sort_index()
+
+
 def get_stock_margin(code: str = '', begin: str = '-3m', page: int = 1, mkt_type: str = 'all'):
     """get stock margin. 融资融券"""
     begin = str2date(begin)
