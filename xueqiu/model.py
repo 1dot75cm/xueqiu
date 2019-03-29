@@ -920,9 +920,14 @@ class Stock:
     @staticmethod
     def annual_return(arr, return_type='simple'):
         """annual return. 年化收益率"""
-        ret = {'simple': (arr.iloc[-1]/arr.iloc[0])**(252/len(arr))-1,
+        ret = {'total': arr.iloc[-1]/arr.iloc[0]-1,
+               'simple': (arr.iloc[-1]/arr.iloc[0])**(252/len(arr))-1,
                'log': (np.log(arr.iloc[-1])-np.log(arr.iloc[0]))*(252/len(arr))}
         return round(ret.get(return_type), 6)
+
+    @staticmethod
+    def total_return(arr):
+        return Stock.annual_return(arr, 'total')
 
     @staticmethod
     def beta(stock, index):
