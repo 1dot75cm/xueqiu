@@ -27,6 +27,10 @@ from .economic import get_economic
 from .economic import get_economic_of_china
 # others
 from .stock import get_data_invest
+from .stock import get_data_csindex
+from .stock import get_data_sseindex
+from .stock import get_data_netease
+from .stock import get_data_spindices
 from .stock import get_data_yahoo
 from .stock import get_quote_yahoo
 from .stock import get_stock_margin
@@ -44,7 +48,7 @@ from .movie import get_movie_boxinfo_live
 
 
 __pkgname__ = "xueqiu"
-__version__ = "0.1.3.1"
+__version__ = "0.1.4"
 __license__ = "MIT"
 __url__ = "https://github.com/1dot75cm/xueqiu"
 __descript__ = "A humanize XueQiu API wrappers."
