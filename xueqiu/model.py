@@ -902,6 +902,11 @@ class Stock:
         return round(arr[ed]/arr[st]-1,6), st, ed
 
     @staticmethod
+    def volatility(arr, freq=252):
+        """volatility."""
+        return round(arr.pct_change().std() * np.sqrt(freq), 6)
+
+    @staticmethod
     def sharpe_ratio(arr, base_rate=0.025):
         """sharpe ratio. 夏普比率"""
         risk_free_return = np.log(1 + base_rate) / 252
