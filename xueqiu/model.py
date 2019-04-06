@@ -897,8 +897,8 @@ class Stock:
     @staticmethod
     def maxdrawdown(arr):
         """maximum drawdown. 最大回撤"""
-        ed = arr.idxmin(arr/arr.expanding().max())  # end of period
-        st = arr.idxmax(arr[:ed])  # start of period
+        ed = (arr/arr.expanding().max()).idxmin()  # end of period
+        st = (arr[:ed]).idxmax()  # start of period
         return round(arr[ed]/arr[st]-1,6), st, ed
 
     @staticmethod
