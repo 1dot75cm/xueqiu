@@ -136,7 +136,7 @@ x_fund_nav = "//td/text()"
 x_fund_history = r"(\d{4}-\d{2}-\d{2}).*?(\d+.\d+).*?(\d+.\d+).*?(-?\d+.\d{2})%"
 x_exrate = r"\d{1,3}.\d{2,5}"
 x_invest_history = ['//tr/th/@data-col-name','//table[1]/tbody/tr','td/@data-real-value']
-x_index_data = r"data/(.*?).csv.*?(date.*?)\x00"
+x_index_data = r"data/(.*?).csv.*?(date.*?)\n(?:\x00|x)"
 
 # economy
 invest_search = invest + "/search/service/SearchInnerPage"  # 搜索
