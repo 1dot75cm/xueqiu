@@ -21,8 +21,10 @@ from . import sheet
 from lxml import etree
 from urllib.parse import urlencode
 from urllib.parse import urljoin
+from scipy import stats
 import pandas as pd
 import numpy as np
+import scipy as sp
 import arrow
 import browsercookie
 import json
@@ -895,39 +897,12 @@ class Stock:
         return self._get_sheet('cash_flow', quarter.upper(), count)
 
     @staticmethod
-    def maxdrawdown(arr):
-        """maximum drawdown. 最大回撤"""
-        ed = (arr/arr.expanding().max()).idxmin()  # end of period
-        st = (arr[:ed]).idxmax()  # start of period
-        return round(arr[ed]/arr[st]-1,6), st, ed
-
-    @staticmethod
-    def volatility(arr, freq=252):
-        """volatility."""
-        return round(arr.pct_change().std() * np.sqrt(freq), 6)
-
-    @staticmethod
-    def sharpe_ratio(arr, base_rate=0.025):
-        """sharpe ratio. 夏普比率"""
-        risk_free_return = np.log(1 + base_rate) / 252
-        daily_return = np.log(arr) - np.log(arr.shift(1)) - risk_free_return
-        sharpe = daily_return.mean() / daily_return.std()
-        return round(sharpe * np.sqrt(252), 4)
-
-    @staticmethod
-    def info_ratio(stock, index):
-        """information ratio. 信息比率"""
-        diff = stock.pct_change() - index.pct_change()
-        diff_rtn = diff.mean() * 252
-        diff_std = diff.std() * np.sqrt(252)
-        return round(diff_rtn / diff_std, 4)
-
-    @staticmethod
-    def annual_return(arr, return_type='simple'):
+    def annual_return(arr, return_type='simple', freq=252):
         """annual return. 年化收益率"""
+        # us 252, hk 247, cn 244
         ret = {'total': arr.iloc[-1]/arr.iloc[0]-1,
-               'simple': (arr.iloc[-1]/arr.iloc[0])**(252/len(arr))-1,
-               'log': (np.log(arr.iloc[-1])-np.log(arr.iloc[0]))*(252/len(arr))}
+               'simple': (arr.iloc[-1]/arr.iloc[0])**(freq/len(arr))-1,
+               'log': (np.log(arr.iloc[-1])-np.log(arr.iloc[0]))*(freq/len(arr))}
         return round(ret.get(return_type), 6)
 
     @staticmethod
@@ -935,18 +910,192 @@ class Stock:
         return Stock.annual_return(arr, 'total')
 
     @staticmethod
+    def maxdrawdown(arr, sequence=False):
+        """maximum drawdown. 最大回撤"""
+        if sequence:
+            return (1-arr/arr.expanding().max()).round(6)
+        ed = (arr/arr.expanding().max()).idxmin()  # end of period
+        st = (arr[:ed]).idxmax()  # start of period
+        return round(arr[ed]/arr[st]-1,6), st, ed
+
+    @staticmethod
+    def daily_maxdrawdown(arr, size=10):
+        """daily maximum drawdown."""
+        pct = arr.pct_change()
+        down_value = pct.quantile(0.1)
+        return pct[pct<down_value].sort_values()[:size]
+
+    @staticmethod
+    def maximumrise(arr):
+        """maximum price rise. 最大上涨"""
+        ed = (arr/arr.expanding().min()).idxmax()  # end of period
+        st = (arr[:ed]).idxmin()  # start of period
+        return round(arr[ed]/arr[st]-1,6), st, ed
+
+    @staticmethod
+    def volatility(arr, freq=252, annual=True):
+        """Volatility."""
+        freq = freq if annual else len(arr)
+        return round(arr.pct_change().std() * np.sqrt(freq), 6)
+
+    @staticmethod
     def beta(stock, index):
-        """beta"""
-        stk_rtn = stock.pct_change()
-        idx_rtn = index.pct_change()
-        return round(stk_rtn.cov(idx_rtn)/idx_rtn.var(), 4)
+        """Beta."""
+        stkrtn = stock.pct_change()
+        idxrtn = index.pct_change()
+        return round(stkrtn.cov(idxrtn)/idxrtn.var(), 4)
 
     @classmethod
-    def alpha(cls, stock, index, base_rate=0.025):
-        """alpha"""
-        alpha_stk = cls.annual_return(stock) - base_rate
-        alpha_idx = cls.annual_return(index) - base_rate
-        return round(alpha_stk-alpha_idx*cls.beta(stock,index), 4)
+    def alpha(cls, stock, index, riskfree=0.025, annual=True):
+        """Jensen alpha."""
+        rtntype = 'simple' if annual else 'total'
+        riskfree = riskfree if annual else riskfree/365*len(stock)
+        stkrtn = cls.annual_return(stock, rtntype) - riskfree
+        idxrtn = cls.annual_return(index, rtntype) - riskfree
+        return round(stkrtn-idxrtn*cls.beta(stock,index), 4)
+
+    @staticmethod
+    def var(arr, alpha=0.05, var_type='ppf'):
+        """Value at Risk."""
+        returns = arr.pct_change()
+        var = {'history': returns.quantile(alpha),
+               'ppf': stats.norm.ppf(alpha, returns.mean(), returns.std())}
+        return round(abs(var[var_type]), 6)
+
+    @classmethod
+    def cvar(cls, arr, alpha=0.05):
+        """The condition VaR of the returns"""
+        var = cls.var(arr, alpha)
+        rtn = pd.DataFrame({'pct_chg': -1*arr.pct_change()})
+        return round(rtn.query('pct_chg >= @var')['pct_chg'].mean(), 6)
+
+    # 基于波动率风险调整回报指标
+    @classmethod
+    def treynor_ratio(cls, stock, index, riskfree=0.025, annual=True, freq=252):
+        """Treynor ratio."""
+        freq = freq if annual else len(stock)
+        daily_return = stock.pct_change() - riskfree/252
+        treynor = daily_return.mean() / cls.beta(stock, index)
+        return round(treynor*freq, 4)
+
+    @staticmethod
+    def sharpe_ratio(arr, riskfree=0.025, annual=True, freq=252):
+        """Sharpe ratio. 夏普比率"""
+        freq = freq if annual else len(arr)
+        risk_free_return = np.log(1 + riskfree) / 252
+        daily_return = np.log(arr) - np.log(arr.shift(1)) - risk_free_return
+        sharpe = daily_return.mean() / daily_return.std()
+        return round(sharpe * np.sqrt(freq), 4)
+
+    @staticmethod
+    def information_ratio(stock, index, annual=True, freq=252):
+        """Information ratio. 信息比率"""
+        freq = freq if annual else len(arr)
+        diff = stock.pct_change() - index.pct_change()
+        diff_rtn = diff.mean() * freq
+        diff_std = diff.std() * np.sqrt(freq)
+        return round(diff_rtn / diff_std, 4)
+
+    @staticmethod
+    def modigliani_ratio(stock, index, riskfree=0.025, annual=True, freq=252):
+        """Modigliani ratio."""
+        freq = freq if annual else len(stock)
+        return_mean = stock.pct_change().mean()
+        driskfree = riskfree/252
+        stkrtn = stock.pct_change() - driskfree
+        idxrtn = index.pct_change() - driskfree
+        return ((return_mean - driskfree) *
+                (stkrtn.std() / idxrtn.std()) + driskfree) * freq
+
+    # 基于Var(Value at Risk)风险调整回报指标
+    @classmethod
+    def excess_var(cls, arr, riskfree=0.025, alpha=0.05, annual=True, freq=252):
+        """Excess VaR."""
+        freq = freq if annual else len(arr)
+        return_mean = arr.pct_change().mean()
+        driskfree = riskfree/252
+        return (return_mean - driskfree) / cls.var(arr, alpha) * freq
+
+    @classmethod
+    def conditional_sharpe_ratio(cls, arr, riskfree=0.025, alpha=0.05, annual=True, freq=252):
+        """Conditional Sharpe ratio."""
+        freq = freq if annual else len(arr)
+        return_mean = arr.pct_change().mean()
+        driskfree = riskfree/252
+        return (return_mean - driskfree) / cls.cvar(arr, alpha) * freq
+
+    # 基于下行风险调整回报指标
+    @staticmethod
+    def partial_moment(arr, threshold, order, result_type='lower'):
+        """returns a lower partial moment of the array"""
+        returns = arr.pct_change()
+        threshold_array = np.empty(len(arr))
+        threshold_array.fill(threshold)
+        pm = {'lower': threshold_array-returns,
+              'upper': returns-threshold_array}
+        diff = pm[result_type]
+        diff = diff.clip(lower=0)
+        return np.sum(diff**order) / len(arr)
+
+    @classmethod
+    def omega_ratio(cls, arr, riskfree=0.025, target=0, annual=True, freq=252):
+        """Omega ratio."""
+        return cls.kappa_ratio(arr, riskfree, target, 1, annual, freq)
+
+    @classmethod
+    def sortino_ratio(cls, arr, riskfree=0.025, target=0, annual=True, freq=252):
+        """Sortino ratio."""
+        return cls.kappa_ratio(arr, riskfree, target, 2, annual, freq)
+
+    @classmethod
+    def kappa_ratio(cls, arr, riskfree=0.025, target=0, order=3, annual=True, freq=252):
+        """Kappa ratio."""
+        freq = freq if annual else len(arr)
+        return_mean = arr.pct_change().mean()
+        lpm = cls.partial_moment(arr, target, order)
+        return (return_mean-riskfree/252)/np.power(lpm,1/order)*np.power(freq,1/order)
+
+    @classmethod
+    def gain_loss_ratio(cls, arr, target=0):
+        """Gain loss ratio."""
+        hpm = cls.partial_moment(arr,target,1,'upper')
+        lpm = cls.partial_moment(arr,target,1,'lower')
+        return hpm/lpm
+
+    @classmethod
+    def upside_potential_ratio(cls, arr, target=0):
+        """Upside potential ratio."""
+        hpm = cls.partial_moment(arr,target,1,'upper')
+        lpm = cls.partial_moment(arr,target,2,'lower')
+        return hpm/np.sqrt(lpm)
+
+    #基于最大回撤风险调整回报指标
+    @classmethod
+    def _average_dd(cls, arr, periods, order=1):
+        mdd = np.sort(np.power(cls.maxdrawdown(arr, True), order))
+        return mdd[-periods:].mean()
+
+    @classmethod
+    def calmar_ratio(cls, arr, riskfree=0.025, annual=True, freq=252):
+        """Calmar ratio."""
+        freq = freq if annual else len(arr)
+        return_mean = arr.pct_change().mean()
+        return (return_mean-riskfree/252)/abs(cls.maxdrawdown(arr)[0])*freq
+
+    @classmethod
+    def sterling_ratio(cls, arr, periods, riskfree=0.025, annual=True, freq=252):
+        """Sterling ratio."""
+        freq = freq if annual else len(arr)
+        return_mean = arr.pct_change().mean()
+        return (return_mean-riskfree/252)/cls._average_dd(arr,periods)*freq
+
+    @classmethod
+    def burke_ratio(cls, arr, periods, riskfree=0.025, annual=True, freq=252):
+        """Burke ratio."""
+        freq = freq if annual else len(arr)
+        return_mean = arr.pct_change().mean()
+        add = cls._average_dd(arr,periods,2)
+        return (return_mean-riskfree/252)/np.sqrt(add)*freq
 
 
 class Fund(Stock):
