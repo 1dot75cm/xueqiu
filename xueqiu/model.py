@@ -1058,7 +1058,8 @@ class Stock:
         freq = freq if annual else len(arr)
         return_mean = arr.pct_change().mean()
         lpm = cls.partial_moment(arr, target, order)
-        return (return_mean-riskfree/252)/np.power(lpm,1/order)*np.power(freq,1/order)
+        to_annual = np.sqrt(freq) if order == 1 else np.power(freq, 1/order)
+        return (return_mean-riskfree/252)/np.power(lpm,1/order)*to_annual
 
     @classmethod
     def gain_loss_ratio(cls, arr, target=0):
