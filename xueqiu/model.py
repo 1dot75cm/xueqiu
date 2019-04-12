@@ -108,10 +108,11 @@ def create_or_refresh_stocks(stocks: list):
     dot_stock = isinstance(stocks[0], Stock) and \
                 ",".join([i.symbol for i in stocks]) or \
                 ",".join([check_symbol(i) for i in stocks])  # symbol or Stock
-    resp = sess.get(api.stocks_quote_v5 % dot_stock)
+    with sess.cache_disabled():
+        resp = sess.get(api.stocks_quote_v5 % dot_stock)
     dt = resp.ok and resp.json()['data']
     if isinstance(stocks[0], Stock):
-        [stocks[i].refresh(v) for i,v in enumerate(dt['items'])]
+        [stocks[i].refresh(v['quote']) for i,v in enumerate(dt['items'])]
         return stocks
     return [Stock(i['quote']) for i in dt['items']]
 
@@ -736,7 +737,7 @@ class Stock:
             dt = resp.ok and resp.json()['data'] and resp.json()['data'][0]
         self.current = dt.get('current')                                # 当前
         self.current_year_percent = dt.get('current_year_percent')      # 年至今回报
-        self.percent = dt.get('percent')                                # 涨跌幅
+        self.percent = dt.get('percent')/100                            # 涨跌幅
         self.chg = dt.get('chg')                                        # 涨跌额
         self.open = dt.get('open')                                      # 今开
         self.last_close = dt.get('last_close')                          # 昨收
@@ -1130,7 +1131,8 @@ class Fund(Stock):
 
     def get_fund_nav(self):
         """get fund nav."""
-        resp = sess.get(api.fund_nav % self.code)
+        with sess.cache_disabled():
+            resp = sess.get(api.fund_nav % self.code)
         nav = etree.HTML(resp.text).xpath(api.x_fund_nav)[:-2]
         nav[1], nav[2] = float(nav[1]), float(nav[2])
         return nav
@@ -1175,4 +1177,4 @@ class Fund(Stock):
 
     def refresh_all(self):
         """refresh all of the fund stock objects."""
-        create_or_refresh_stocks([self] + [i for i in self.fund_stocks])
+        create_or_refresh_stocks([self] + [i for i in self.fund_stocks.stocks])
