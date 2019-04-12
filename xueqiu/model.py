@@ -15,6 +15,7 @@ __all__ = ['news', 'search', 'Selector', 'Stock', 'Fund', 'Post', 'Comment', 'Us
 from .utils import clean_html
 from .utils import check_symbol
 from .utils import sess
+from .utils import js2obj
 from .stock import get_quote_yahoo
 from . import api
 from . import sheet
@@ -703,7 +704,10 @@ class Stock:
         self.popstocks = []  # 粉丝关注股票
         self.industries = {} # 同行业股票
         self.history = {}    # 历史行情
-        self.base_indicator_yahoo = get_quote_yahoo(self.symbol)  # 基本指标(雅虎)
+        try:
+            self.base_indicator_yahoo = get_quote_yahoo(self.symbol)  # 基本指标(雅虎)
+        except:
+            pass
         self.base_indicator = self.indicator()  # 基本指标
 
     def __repr__(self):
@@ -1131,21 +1135,28 @@ class Fund(Stock):
         nav[1], nav[2] = float(nav[1]), float(nav[2])
         return nav
 
-    def get_fund_histories(self, begin: str = '-1m', end: str = arrow.now(), size: int = 1024):
+    def get_fund_histories(self, begin: str = '-1m', end: str = arrow.now(), size: int = 40):
         """get fund history data.
 
         :param begin: the start date of the results.
                 value: -1w -2w -1m -3m -6m -1y -2y -3y -5y cyear issue or YYYY-MM-DD
         :param end: (optional) the end date of the results, default is `now`.
-        :param size: (optional) the number of results, default is `1024`.
+        :param size: (optional) the number of results, default is `40`.
         """
         begin = len(begin)>5 and arrow.get(begin).format('YYYY-MM-DD') \
                              or  self._str2date(begin).format('YYYY-MM-DD')
         end = arrow.get(end).format('YYYY-MM-DD')
-        resp = sess.get(api.fund_history % (self.code, begin, end, size))
-        df = pd.DataFrame(
-                re.findall(api.x_fund_history, resp.text),
-                columns=['date','nav','cnav','percent'])
+        params = dict(code=self.code, sdate=begin, edate=end, per=size, page=1)
+        resp = sess.get(api.fund_history, params=params)
+        data = js2obj(resp.text, 'apidata')
+        navs = re.findall(api.x_fund_history, data['content'])
+        if data['pages'] != 1:
+            for page in range(2, data['pages']+1):
+                params['page'] = page
+                resp = sess.get(api.fund_history, params=params)
+                data = js2obj(resp.text, 'apidata')
+                navs += re.findall(api.x_fund_history, data['content'])
+        df = pd.DataFrame(navs, columns=['date','nav','cnav','percent'], dtype=float)
         df['date'] = pd.to_datetime(df['date'])
         self.fund_history = df.set_index('date').sort_index(axis=0)
 

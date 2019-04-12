@@ -79,7 +79,10 @@ def check_symbol(code: str, source: str = 'xueqiu'):
     # 163: A股 0601318 1000333
     prefix, suffix = code[:2].lower(), code[-2:].lower()
     match = re.search(r'\d+', str(code))
-    code = match and match[0] or str(code)
+    if match and len(match[0])>=5:
+        code = match[0]
+    else:
+        code = str(code)
     sym = {'xueqiu': {'sz':'SZ'+code,  'sh':'SH'+code,  'ss':'SH'+code,  'hk':code},
            'yahoo':  {'sz':code+'.SZ', 'sh':code+'.SS', 'ss':code+'.SS', 'hk':code[1:]+'.HK'},
            '163':    {'sz':'1'+code,   'sh':'0'+code,   'ss':'0'+code,   'hk':code}}
