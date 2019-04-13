@@ -8,4 +8,4 @@ if not __package__:
     sys.path.insert(0, path)
 
 import xueqiu
-xueqiu.main()
+xueqiu.about()

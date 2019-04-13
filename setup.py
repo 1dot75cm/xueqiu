@@ -33,8 +33,7 @@ class PyTest(TestCommand):
 
 class PostInstall(install):
     """run post install."""
-    pkgs = ' git+https://github.com/1dot75cm/browsercookie@master'\
-           ' git+https://github.com/1dot75cm/pandas_market_calendars@master'
+    pkgs = ' git+https://github.com/1dot75cm/browsercookie@master'
     def run(self):
         install.run(self)
         print(getoutput('pip install'+self.pkgs))

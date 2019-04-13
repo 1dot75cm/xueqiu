@@ -48,7 +48,7 @@ from .movie import get_movie_boxinfo_live
 
 
 __pkgname__ = "xueqiu"
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __license__ = "MIT"
 __url__ = "https://github.com/1dot75cm/xueqiu"
 __descript__ = "A humanize XueQiu API wrappers."
