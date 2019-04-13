@@ -77,6 +77,7 @@ def check_symbol(code: str, source: str = 'xueqiu'):
     # xueqiu: 美股 FB BABA, 港股 00700 HKHSI, A股 SH601318 SZ000333
     # yahoo: 美股 FB BABA, 港股 0700.HK ^HSI, A股 601318.SS 000333.SZ
     # 163: A股 0601318 1000333
+    _code = code
     prefix, suffix = code[:2].lower(), code[-2:].lower()
     match = re.search(r'\d+', str(code))
     if match and len(match[0])>=5:
@@ -86,14 +87,16 @@ def check_symbol(code: str, source: str = 'xueqiu'):
     sym = {'xueqiu': {'sz':'SZ'+code,  'sh':'SH'+code,  'ss':'SH'+code,  'hk':code},
            'yahoo':  {'sz':code+'.SZ', 'sh':code+'.SS', 'ss':code+'.SS', 'hk':code[1:]+'.HK'},
            '163':    {'sz':'1'+code,   'sh':'0'+code,   'ss':'0'+code,   'hk':code}}
-    if prefix in ['sh','sz']:
+    if _code[:3].lower() in ['.sp','csi']:
+        return _code
+    elif prefix in ['sh','sz']:
         return sym[source].get(prefix)
     elif suffix in ['sh','ss','sz','hk']:
         return sym[source].get(suffix)
     elif len(code) > 5:
-        if prefix in ["30", "39", "00"]:
+        if prefix in ['00','15','16','30','39']:
             return sym[source]['sz']
-        elif prefix in ["60", "50", "51"]:
+        elif prefix in ['50','51','60']:
             return sym[source]['sh']
     elif len(code) == 5 and code[0] != '^':
         return sym[source]['hk']

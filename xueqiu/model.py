@@ -737,7 +737,7 @@ class Stock:
             dt = resp.ok and resp.json()['data'] and resp.json()['data'][0]
         self.current = dt.get('current')                                # 当前
         self.current_year_percent = dt.get('current_year_percent')      # 年至今回报
-        self.percent = dt.get('percent')/100                            # 涨跌幅
+        self.percent = dt.get('percent') and dt.get('percent')/100 or 0 # 涨跌幅
         self.chg = dt.get('chg')                                        # 涨跌额
         self.open = dt.get('open')                                      # 今开
         self.last_close = dt.get('last_close')                          # 昨收
@@ -861,6 +861,8 @@ class Stock:
         :param count: (optional) the number of results, default is `12`.
         :param lang: (optional) sheet language, default is `cn`.
         """
+        if self.exchange in ['INDEXSP','INDEXNASDAQ','CSI']:
+            return None
         if quarter == 'last' or self.exchange == 'HK':
             reg = {'SH':'cn', 'SZ':'cn', 'HK':'hk', 'NYSE':'us', 'NASDAQ':'us'}
             region = reg[self.exchange]
