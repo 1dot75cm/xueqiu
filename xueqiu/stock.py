@@ -223,7 +223,7 @@ def get_trade_days(start_date: str = '-1y', end_date: str = arrow.now(),
 
 def load_index_data(code: str = None):
     """load index data from index.dat file."""
-    with gzip.open(api.index_file, 'rt') as f:
+    with gzip.open(api.index_file, 'rt', encoding='utf8') as f:
         data = re.findall(api.x_index_data, f.read(), re.S)
     dfs = {k: pd.read_csv(StringIO(v), index_col='date',
                 parse_dates=True) for k,v in data}

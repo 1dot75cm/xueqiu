@@ -41,7 +41,7 @@ class PostInstall(install):
 
 
 def gendeps(filename):
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding='utf8') as f:
         return re.split("\n", f.read())
 
 
@@ -57,7 +57,7 @@ setup(
     author=xueqiu['author'],
     author_email=xueqiu['email'],
     description=xueqiu['descript'],
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf8').read(),
     long_description_content_type='text/markdown',
     packages=find_packages(exclude=['tests']),
     package_dir={'xueqiu': 'xueqiu'},
