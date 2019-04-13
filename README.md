@@ -1,15 +1,34 @@
 # xueqiu
 a humanize XueQiu API wrappers.
 
-## Quick start
+## Installation
 
-Installation
+1.First, you need to install some basic components.
+- [git-scm](https://www.git-scm.com/download/)
+- [python3](https://www.python.org/downloads/)
+- [nodejs](https://nodejs.org/en/download/current/) (needs `node` command in the PATH variable)
+
+2.And then, install [Google Chrome Browser](https://www.google.cn/chrome/?standalone=1&platform=win64&extra=stablechannel) and [Chrome Driver](http://chromedriver.chromium.org/).
 
 ```sh
-pip install xueqiu
-OR
-pip install git+https://github.com/1dot75cm/xueqiu@master
+> copy chromedriver.exe %LOCALAPPDATA%\Programs\Python\Python37-32\
 ```
+
+3.Finally, install `xueqiu` via `pip`.
+
+```sh
+$ pip install xueqiu  # OR git+https://github.com/1dot75cm/xueqiu@master
+$ pip install git+https://github.com/1dot75cm/browsercookie@master
+$ python3 -m xueqiu
+xueqiu x.y.z - A humanize XueQiu API wrappers.
+
+:copyright: (c) 2019 by 1dot75cm.
+:license: MIT, see LICENSE for more details.
+```
+
+enjoy!!!
+
+## Quick start
 
 Example:
 
