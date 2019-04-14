@@ -112,3 +112,30 @@ def get_all_funds_ranking(fund_type: str = 'all',
         or  range(df.columns.get_loc('percent'), len(df.columns))
     df.iloc[:,colnum] = df.iloc[:,colnum].applymap(lambda x:x and float(x)/100 or None)
     return df
+
+
+def get_fund_histories(code, begin: str = '-1m', end: str = arrow.now(), size: int = 40):
+    """get fund history data.
+
+    :param begin: the start date of the results.
+            value: -1w -2w -1m -3m -6m -1y -2y -3y -5y cyear or YYYY-MM-DD
+    :param end: (optional) the end date of the results, default is `now`.
+    :param size: (optional) the number of results, default is `40`.
+    """
+    begin = str2date(begin).format('YYYY-MM-DD')
+    end = arrow.get(end).format('YYYY-MM-DD')
+    page = 1
+    while True:
+        params = dict(code=code, sdate=begin, edate=end, per=size, page=page)
+        resp = sess.get(api.fund_history, params=params)
+        data = js2obj(resp.text, 'apidata')
+        navdf = pd.read_html(data['content'])[0].iloc[:,:4]
+        navdf.iloc[:,0] = navdf.iloc[:,0].apply(lambda x: x.replace('*',''))
+        if data['curpage'] == 1: df = navdf
+        else: df = df.append(navdf)
+        if data['pages'] == 1 or data['pages'] == page:
+            break
+        page += 1
+    df.columns = ['date','nav','cnav','percent']
+    df['date'] = pd.to_datetime(df['date'])
+    return df.set_index('date').sort_index(axis=0)
