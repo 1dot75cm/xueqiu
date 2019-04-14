@@ -945,6 +945,13 @@ class Stock:
         freq = freq if annual else len(arr)
         return round(arr.pct_change().std() * np.sqrt(freq), 6)
 
+    @classmethod
+    def downside_risk(cls, arr, threshold=0, annual=True, freq=252):
+        """Downside risk."""
+        freq = freq if annual else len(arr)
+        lpm = cls.partial_moment(arr, threshold, 2)
+        return round(np.sqrt(lpm * freq), 6)
+
     @staticmethod
     def beta(stock, index):
         """Beta."""
