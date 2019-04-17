@@ -1145,6 +1145,7 @@ class Fund(Stock):
             resp = sess.get(api.fund_nav % self.code)
         nav = etree.HTML(resp.text).xpath(api.x_fund_nav)[:-2]
         nav[1], nav[2] = float(nav[1]), float(nav[2])
+        self.fund_nav = nav
         return nav
 
     def get_fund_histories(self, begin: str = '-1m', end: str = arrow.now(), size: int = 40):
@@ -1181,7 +1182,7 @@ class Fund(Stock):
         percent = np.array([i.percent for i in self.fund_stocks.stocks])
         weight = np.array(self.fund_stocks.weight)
         # 当前/(净值*1+sum(涨跌幅*权重*汇率))-1
-        fund_percent = sum(percent*weight)/sum(weight)
+        fund_percent = np.sum(percent*weight)
         self.fund_nav_guess = round(self.fund_nav[1]*(1+fund_percent),4), round(fund_percent,6),
         self.fund_nav_premium = round(self.current/self.fund_nav_guess[0]-1, 6)
 
