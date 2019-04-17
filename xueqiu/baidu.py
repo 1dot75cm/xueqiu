@@ -161,6 +161,7 @@ class BaiduIndex(BaseIndex):
     Usage::
 
     >>> idx = BaiduIndex()
+    >>> idx.live('股票,基金','深圳')
     >>> idx.search('股票',begin='-3m',area='上海')
     >>> idx.region_distribution('股票','-6w')  # 地域分布
     >>> idx.social_attribute('股票','-15d')  # 人群属性
@@ -203,6 +204,19 @@ class BaiduIndex(BaseIndex):
         self.result = pd.DataFrame(self._result).set_index('date')
         return self.result
 
+    def live(self, keyword, area='全国', *args, **kwargs):
+        self.__init__(keyword, index='live', area=area, *args, **kwargs)
+        for d in self.get_encrypt_data():
+            region = 0 if self.area == '全国' else str(AREAS[self.area])
+            encdata = d.get('index')[region]
+            period = [arrow.get(i) for i in encdata['period'].split('|')]
+            self._result[d.get('key')] += \
+                self.decrypt(self.get_key(), encdata['_all'])
+        date_range = arrow.Arrow.range('hour', period[0], period[1])
+        self._result['date'] = pd.to_datetime([i.datetime for i in date_range])
+        self.result = pd.DataFrame(self._result).set_index('date')
+        return self.result
+
     def region_distribution(self, keyword, *args, **kwargs):
         """region distribution statistics. 地域分布"""
         self.__init__(keyword, *args, **kwargs)
@@ -227,21 +241,27 @@ class BaiduIndex(BaseIndex):
         self.social = {i['word']: {'age':i['str_age'], 'sex':i['str_sex']} for i in resp['data']}
         return self.social
 
-    def get_encrypt_data(self, start_date, end_date):
+    def get_encrypt_data(self, start_date=None, end_date=None):
         """get encrypted data."""
-        idx = {'search': api.baidu_search_index,
+        idx = {'live': api.baidu_search_live,
+               'search': api.baidu_search_index,
                'feed': api.baidu_feed_index,
                'news': api.baidu_news_index}
-        params = {'area': AREAS[self.area],
-                  'word': ','.join(self._keywords),
-                  'startDate': start_date.format('YYYY-MM-DD'),
-                  'endDate': end_date.format('YYYY-MM-DD')}
+        params = {'word': ','.join(self._keywords)}
+        if self.index_type == 'live':
+            params.update({'region': AREAS[self.area]})
+        else:
+            params.update({
+                'area': AREAS[self.area],
+                'startDate': start_date.format('YYYY-MM-DD'),
+                'endDate': end_date.format('YYYY-MM-DD')
+            })
         cookie = self.cookie and {'Cookie': self.cookie} or {}
         resp = sess.get(idx[self.index_type], params=params, headers=cookie)
         #status: 0 ok, 10000 no login, 10002 bad request
         data = resp.json()['data']
         self._uniqid = data['uniqid']
-        encrypt_data = data.get('userIndexes') or data.get('index')
+        encrypt_data = data.get('userIndexes') or data.get('index') or data.get('result')
         return encrypt_data
 
     def get_key(self):

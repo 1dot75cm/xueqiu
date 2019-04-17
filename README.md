@@ -787,6 +787,13 @@ Example:
 ```python
 >>> BaiduIndex.cookie = "cookie string"  # OR load cookie from browsers
 >>> idx = BaiduIndex()
+>>> idx.live('股票,基金', '深圳').tail()
+date            股票  基金
+2019-04-17 08:00  30  21
+2019-04-17 09:00 105  17
+2019-04-17 10:00  84   6
+2019-04-17 11:00  87  16
+2019-04-17 12:00  32   3
 >>> idx.search('股票,基金', begin='-3m', area='上海').tail()
 date        股票   基金
 2019-02-18  1722  778
